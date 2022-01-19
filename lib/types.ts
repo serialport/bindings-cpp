@@ -25,7 +25,7 @@ export interface OpenOptions {
   /** Flow control Setting */
   rtscts: boolean
   /** Flow control Setting */
-  xon:boolean
+  xon: boolean
   /** Flow control Setting */
   xoff: boolean
   /** Flow control Setting */
@@ -57,7 +57,7 @@ export interface BindingStaticInterface {
    */
   list(): Promise<PortInfo[]>
 
-  new(..._foo: any[]): BindingInterface
+  new (..._foo: any[]): BindingInterface
 }
 
 /**
@@ -88,8 +88,7 @@ export interface BindingInterface {
    * @param length Specifies the maximum number of bytes to read.
    * @returns {Promise} Resolves with the number of bytes read after a read operation.
    */
-  read(buffer: Buffer, offset: number, length: number): Promise<{ buffer: Buffer, bytesRead: number }>
-
+  read(buffer: Buffer, offset: number, length: number): Promise<{ buffer: Buffer; bytesRead: number }>
 
   /**
   Write bytes to the SerialPort. Only called when there is no pending write operation.
@@ -99,7 +98,6 @@ export interface BindingInterface {
   Resolves after the data is passed to the operating system for writing.
    */
   write(buffer: Buffer): Promise<void>
-
 
   /**
     Changes connection settings on an open port.

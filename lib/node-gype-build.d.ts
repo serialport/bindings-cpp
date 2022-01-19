@@ -1,1 +1,1 @@
-declare module 'node-gyp-build';
+declare module 'node-gyp-build'

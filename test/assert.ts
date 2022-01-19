@@ -1,4 +1,4 @@
-import {assert, use } from 'chai'
+import { assert, use } from 'chai'
 import chaiSubset from 'chai-subset'
 use(chaiSubset)
 
@@ -11,6 +11,5 @@ export const shouldReject = async (promise: Promise<any>, errType = Error, messa
   }
   throw new Error(message)
 }
-
 
 export { assert }

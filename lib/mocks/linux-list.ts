@@ -6,7 +6,7 @@ import { linuxList } from '../linux-list'
 import { spawn } from 'child_process'
 
 export const mockLinuxList = (mockUDevOutput: string) => {
-  return linuxList(function spawn() {
+  return linuxList(() => {
     const mockUDevAdm = new EventEmitter() as any
     const stream = new Readable({ read() {} })
     mockUDevAdm.stdout = stream
@@ -17,7 +17,7 @@ export const mockLinuxList = (mockUDevOutput: string) => {
 }
 
 export const mockLinuxListError = (code: string) => {
-  return linuxList(function spawn() {
+  return linuxList(() => {
     const mockUDevAdm = new EventEmitter() as any
     mockUDevAdm.stdout = new Readable({ read() {} })
     setImmediate(() => {

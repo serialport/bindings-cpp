@@ -1,8 +1,8 @@
 import debug from 'debug'
-import {EventEmitter} from 'events'
+import { EventEmitter } from 'events'
 import { join } from 'path'
 import nodeGypBuild from 'node-gyp-build'
-import { CanceledError } from "./errors"
+import { CanceledError } from './errors'
 
 const PollerBindings = nodeGypBuild(join(__dirname, '../')).Poller
 const logger = debug('serialport/bindings/poller')
@@ -107,5 +107,3 @@ export class Poller extends EventEmitter {
     this.emit('disconnect', err)
   }
 }
-
-

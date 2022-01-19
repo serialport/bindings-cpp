@@ -25,10 +25,10 @@ export interface LinuxBindingOptions {
   vmin?: number
   /** see [`man termios`](http://linux.die.net/man/3/termios) defaults to 0 */
   vtime?: number
-    // * @param {Boolean} [options.lowLatency=false] flag for lowLatency mode on Linux
+  // * @param {Boolean} [options.lowLatency=false] flag for lowLatency mode on Linux
 }
 
-interface LinuxSetOptions extends SetOptions{
+interface LinuxSetOptions extends SetOptions {
   /** Low latency mode */
   lowLatency?: boolean
 }
@@ -40,7 +40,7 @@ export const LinuxBinding: BindingStaticInterface = class implements BindingInte
   bindingOptions: LinuxBindingOptions
   fd: null | number
   writeOperation: Promise<void> | null
-  openOptions: LinuxBindingOptions & OpenOptions | null
+  openOptions: (LinuxBindingOptions & OpenOptions) | null
   poller: Poller | null
 
   static list() {
@@ -55,7 +55,8 @@ export const LinuxBinding: BindingStaticInterface = class implements BindingInte
       ...opt,
     }
     this.fd = null
-    this.writeOperation = null  }
+    this.writeOperation = null
+  }
 
   get isOpen() {
     return this.fd !== null
@@ -95,10 +96,14 @@ export const LinuxBinding: BindingStaticInterface = class implements BindingInte
     return asyncClose(fd)
   }
 
-  async read(buffer: Buffer, offset: number, length: number): Promise<{
-    buffer: Buffer;
-    bytesRead: number;
-}> {
+  async read(
+    buffer: Buffer,
+    offset: number,
+    length: number
+  ): Promise<{
+    buffer: Buffer
+    bytesRead: number
+  }> {
     if (!Buffer.isBuffer(buffer)) {
       throw new TypeError('"buffer" is not a Buffer')
     }

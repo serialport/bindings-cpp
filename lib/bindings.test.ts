@@ -245,7 +245,7 @@ function testBinding(bindingName: string, Binding: BindingStaticInterface, testP
 
         it('errors when not called with options', async () => {
           await shouldReject(
-            (binding as any).set(() => { }),
+            (binding as any).set(() => {}),
             Error
           )
         })
@@ -342,11 +342,9 @@ function testBinding(bindingName: string, Binding: BindingStaticInterface, testP
 
         it('waits for in progress writes to finish', async () => {
           let finishedWrite = false
-          const write = binding
-            .write(Buffer.alloc(1024 * 2))
-            .then(() => {
-              finishedWrite = true
-            })
+          const write = binding.write(Buffer.alloc(1024 * 2)).then(() => {
+            finishedWrite = true
+          })
           await binding.drain()
           assert.isTrue(finishedWrite)
           await write
@@ -398,7 +396,7 @@ function testBinding(bindingName: string, Binding: BindingStaticInterface, testP
         it('throws when not called with options', async () => {
           const binding = new Binding()
           await shouldReject(
-            (binding as any).set(() => { }),
+            (binding as any).set(() => {}),
             TypeError
           )
         })

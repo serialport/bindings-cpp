@@ -8,7 +8,7 @@ import { DarwinBinding } from './darwin'
 const logger = debugFactory('serialport/bindings-cpp/unixRead')
 const readAsync = promisify(fsRead)
 
-const readable = (binding: LinuxBinding| DarwinBinding) => {
+const readable = (binding: LinuxBinding | DarwinBinding) => {
   return new Promise<void>((resolve, reject) => {
     if (!binding.poller) {
       throw new Error('No poller on bindings')
@@ -18,14 +18,20 @@ const readable = (binding: LinuxBinding| DarwinBinding) => {
 }
 
 interface UnixReadOptions {
-  binding: LinuxBinding| DarwinBinding
+  binding: LinuxBinding | DarwinBinding
   buffer: Buffer
   offset: number
   length: number
   fsReadAsync?: typeof readAsync
 }
 
-export const unixRead = async ({ binding, buffer, offset, length, fsReadAsync = readAsync }: UnixReadOptions): Promise<{ buffer: Buffer, bytesRead: number }> => {
+export const unixRead = async ({
+  binding,
+  buffer,
+  offset,
+  length,
+  fsReadAsync = readAsync,
+}: UnixReadOptions): Promise<{ buffer: Buffer; bytesRead: number }> => {
   logger('Starting read')
   if (!binding.isOpen || !binding.fd) {
     throw new CanceledError('Port is not open')

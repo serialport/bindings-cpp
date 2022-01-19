@@ -1,14 +1,15 @@
 {
   "extends": [
     "eslint:recommended",
-    "plugin:node/recommended",
-    "plugin:mocha/recommended"
+    "plugin:mocha/recommended",
+    "plugin:@typescript-eslint/recommended",
   ],
   "plugins": [
     "prettier",
-    "node",
-    "mocha"
+    "mocha",
+    "@typescript-eslint"
   ],
+  "parser": "@typescript-eslint/parser",
   "env": {
     "node": true,
     "mocha": true,
@@ -30,12 +31,6 @@
     "no-process-exit": "off",
     "no-unused-vars": [ "error", { "vars": "all", "args": "after-used" }],
     "no-var": "error",
-    "node/no-extraneous-require": "off",
-    "node/no-unpublished-require": "off",
-    "node/no-unsupported-features/es-builtins": "error",
-    "node/no-unsupported-features/es-syntax": "error",
-    "node/no-unsupported-features/node-builtins": "error",
-    "node/shebang": "off",
     "object-shorthand": "error",
     "prefer-arrow-callback": "error",
     "prefer-const": "error",

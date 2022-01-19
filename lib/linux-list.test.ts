@@ -1,5 +1,5 @@
 import { assert, shouldReject } from '../test/assert'
-import { mockLinuxList as linuxList, mockLinuxListError} from './mocks/linux-list'
+import { mockLinuxList as linuxList, mockLinuxListError } from './mocks/linux-list'
 
 const mockUdevOutput = String.raw`
 P: /devices/platform/serial8250/tty/ttyS0
@@ -111,6 +111,6 @@ describe('listLinux', () => {
 
   it('rejects on non-zero exit codes', async () => {
     const list = mockLinuxListError('1')
-    await shouldReject(list, Error, 'Error listing ports udevadm exited with error code: 1' )
+    await shouldReject(list, Error, 'Error listing ports udevadm exited with error code: 1')
   })
 })

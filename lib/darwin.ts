@@ -2,7 +2,7 @@ import debugFactory from 'debug'
 import { promisify } from 'util'
 import { join } from 'path'
 import nodeGypBuild from 'node-gyp-build'
-import { BindingInterface, BindingStaticInterface, OpenOptions, SetOptions, UpdateOptions } from "./types"
+import { BindingInterface, BindingStaticInterface, OpenOptions, SetOptions, UpdateOptions } from './types'
 import { Poller } from './poller'
 import { unixRead } from './unix-read'
 import { unixWrite } from './unix-write'
@@ -34,7 +34,7 @@ export const DarwinBinding: BindingStaticInterface = class implements BindingInt
   bindingOptions: DarwinBindingOptions
   fd: null | number
   writeOperation: Promise<void> | null
-  openOptions: DarwinBindingOptions & OpenOptions | null
+  openOptions: (DarwinBindingOptions & OpenOptions) | null
   poller: Poller | null
 
   static list(): ReturnType<BindingStaticInterface['list']> {
@@ -91,10 +91,14 @@ export const DarwinBinding: BindingStaticInterface = class implements BindingInt
     return asyncClose(fd)
   }
 
-  async read(buffer: Buffer, offset: number, length: number): Promise<{
-    buffer: Buffer;
-    bytesRead: number;
-}> {
+  async read(
+    buffer: Buffer,
+    offset: number,
+    length: number
+  ): Promise<{
+    buffer: Buffer
+    bytesRead: number
+  }> {
     if (!Buffer.isBuffer(buffer)) {
       throw new TypeError('"buffer" is not a Buffer')
     }

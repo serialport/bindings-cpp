@@ -1,4 +1,4 @@
-import { PortInfo } from "./types"
+import { PortInfo } from './types'
 
 const childProcess = require('child_process')
 const Readline = require('@serialport/parser-readline')
