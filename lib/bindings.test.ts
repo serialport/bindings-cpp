@@ -1,16 +1,9 @@
-/* eslint-disable mocha/no-pending-tests */
-let platform
-switch (process.platform) {
-  case 'win32':
-  case 'darwin':
-  case 'linux':
-    platform = process.platform
-    break
-  default:
-    throw new Error(`Unknown platform "${process.platform}"`)
-}
+import { assert, shouldReject } from '../test/assert'
+import { makeTestFeature } from '../test/test-config'
+import { BindingInterface, BindingStaticInterface, OpenOptions, PortInfo, SetOptions } from './types'
 
-const defaultOpenOptions = Object.freeze({
+/* eslint-disable mocha/no-pending-tests */
+const defaultOpenOptions: OpenOptions = Object.freeze({
   baudRate: 9600,
   dataBits: 8,
   hupcl: true,
@@ -23,7 +16,7 @@ const defaultOpenOptions = Object.freeze({
   xon: false,
 })
 
-const defaultSetFlags = Object.freeze({
+const defaultSetFlags: SetOptions = Object.freeze({
   brk: false,
   cts: false,
   dtr: true,
@@ -32,9 +25,9 @@ const defaultSetFlags = Object.freeze({
   lowLatency: false,
 })
 
-const listFields = ['path', 'manufacturer', 'serialNumber', 'pnpId', 'locationId', 'vendorId', 'productId']
+type MockBinding = any
 
-const bindingsToTest = ['mock', platform]
+const listFields = ['path', 'manufacturer', 'serialNumber', 'pnpId', 'locationId', 'vendorId', 'productId']
 
 // All bindings are required to work with an "echo" firmware
 // The echo firmware should respond with this data when it's
@@ -42,26 +35,16 @@ const bindingsToTest = ['mock', platform]
 // the default firmware is called arduinoEcho.ino
 const readyData = Buffer.from('READY')
 
-// Test our mock binding and the binding for the platform we're running on
-bindingsToTest.forEach(bindingName => {
-  const Binding = bindingName === 'mock' ? require('@serialport/binding-mock') : require(`./${bindingName}`)
-  let testPort = process.env.TEST_PORT
+testBinding('mock', require('@serialport/binding-mock'), '/dev/exists')
+testBinding(process.platform, require(`./index`), process.env.TEST_PORT)
 
-  if (bindingName === 'mock') {
-    testPort = '/dev/exists'
-  }
-
-  // eslint-disable-next-line no-use-before-define
-  testBinding(bindingName, Binding, testPort)
-})
-
-function testBinding(bindingName, Binding, testPort) {
+function testBinding(bindingName: string, Binding: BindingStaticInterface, testPort?: string) {
   const testFeature = makeTestFeature(bindingName)
 
   describe(`bindings/${bindingName}`, () => {
     before(() => {
       if (bindingName === 'mock') {
-        Binding.createPort(testPort, { echo: true, readyData })
+        (Binding as MockBinding).createPort(testPort, { echo: true, readyData })
       }
     })
 
@@ -81,11 +64,10 @@ function testBinding(bindingName, Binding, testPort) {
           }
           ports.forEach(port => {
             assert.containSubset(Object.keys(port), listFields)
-            Object.keys(port).forEach(key => {
+            Object.keys(port).forEach((key: keyof PortInfo) => {
               assert.notEqual(port[key], '', 'empty values should be undefined')
               assert.isNotNull(port[key], 'empty values should be undefined')
             })
-            assert.equal(port.comName, port.path)
           })
         })
       })
@@ -96,16 +78,6 @@ function testBinding(bindingName, Binding, testPort) {
         const binding = new Binding()
         assert.instanceOf(binding, Binding)
       })
-
-      it('throws when given something weird', () => {
-        try {
-          new Binding(4)
-        } catch (e) {
-          assert.instanceOf(e, TypeError)
-          return
-        }
-        throw new Error('Should have errored')
-      })
     })
 
     describe('instance property', () => {
@@ -115,26 +87,24 @@ function testBinding(bindingName, Binding, testPort) {
           return
         }
 
-        let binding
+        let binding: BindingInterface
         beforeEach(() => {
           binding = new Binding()
         })
 
-        it('is true after open and false after close', () => {
+        it('is true after open and false after close', async () => {
           assert.equal(binding.isOpen, false)
-          return binding.open(testPort, defaultOpenOptions).then(() => {
-            assert.equal(binding.isOpen, true)
-            return binding.close().then(() => {
-              assert.equal(binding.isOpen, false)
-            })
-          })
+          await binding.open(testPort, defaultOpenOptions)
+          assert.equal(binding.isOpen, true)
+          await binding.close()
+          assert.equal(binding.isOpen, false)
         })
       })
     })
 
     describe('instance method', () => {
       describe('#open', () => {
-        let binding
+        let binding: BindingInterface
         beforeEach(() => {
           binding = new Binding()
         })
@@ -217,7 +187,7 @@ function testBinding(bindingName, Binding, testPort) {
       })
 
       describe('#close', () => {
-        let binding
+        let binding: BindingInterface
         beforeEach(() => {
           binding = new Binding()
         })
@@ -242,7 +212,7 @@ function testBinding(bindingName, Binding, testPort) {
       describe('#update', () => {
         it('throws when not given an object', async () => {
           const binding = new Binding()
-          await shouldReject(binding.update(), TypeError)
+          await shouldReject((binding as any).update(), TypeError)
         })
 
         it('errors asynchronously when not open', done => {
@@ -261,7 +231,7 @@ function testBinding(bindingName, Binding, testPort) {
           return
         }
 
-        let binding
+        let binding: BindingInterface
         beforeEach(() => {
           binding = new Binding()
           return binding.open(testPort, defaultOpenOptions)
@@ -270,12 +240,12 @@ function testBinding(bindingName, Binding, testPort) {
         afterEach(() => binding.close())
 
         it('throws errors when updating nothing', async () => {
-          await shouldReject(binding.update({}), Error)
+          await shouldReject((binding as any).update({}), Error)
         })
 
         it('errors when not called with options', async () => {
           await shouldReject(
-            binding.set(() => {}),
+            (binding as any).set(() => { }),
             Error
           )
         })
@@ -308,15 +278,15 @@ function testBinding(bindingName, Binding, testPort) {
 
         it('rejects when not given a buffer', async () => {
           const binding = new Binding()
-          await shouldReject(binding.write(null), TypeError)
+          await shouldReject((binding as any).write(null), TypeError)
         })
 
         if (!testPort) {
-          it(`Cannot be tested as we have no test ports on ${platform}`)
+          it(`Cannot be tested as we have no test ports available`)
           return
         }
 
-        let binding
+        let binding: BindingInterface
         beforeEach(() => {
           binding = new Binding()
           return binding.open(testPort, defaultOpenOptions)
@@ -358,7 +328,7 @@ function testBinding(bindingName, Binding, testPort) {
           return
         }
 
-        let binding
+        let binding: BindingInterface
         beforeEach(() => {
           binding = new Binding()
           return binding.open(testPort, defaultOpenOptions)
@@ -370,20 +340,16 @@ function testBinding(bindingName, Binding, testPort) {
           return binding.drain()
         })
 
-        it('waits for in progress writes to finish', function (done) {
-          this.timeout(10000)
+        it('waits for in progress writes to finish', async () => {
           let finishedWrite = false
-          binding
+          const write = binding
             .write(Buffer.alloc(1024 * 2))
             .then(() => {
               finishedWrite = true
             })
-            .catch(done)
-          binding
-            .drain(() => {
-              assert.isTrue(finishedWrite)
-            })
-            .then(done, done)
+          await binding.drain()
+          assert.isTrue(finishedWrite)
+          await write
         })
       })
 
@@ -404,7 +370,7 @@ function testBinding(bindingName, Binding, testPort) {
           return
         }
 
-        let binding
+        let binding: BindingInterface
         beforeEach(() => {
           binding = new Binding()
           return binding.open(testPort, defaultOpenOptions)
@@ -432,7 +398,7 @@ function testBinding(bindingName, Binding, testPort) {
         it('throws when not called with options', async () => {
           const binding = new Binding()
           await shouldReject(
-            binding.set(() => {}),
+            (binding as any).set(() => { }),
             TypeError
           )
         })
@@ -442,7 +408,7 @@ function testBinding(bindingName, Binding, testPort) {
           return
         }
 
-        let binding
+        let binding: BindingInterface
         beforeEach(() => {
           binding = new Binding()
           return binding.open(testPort, defaultOpenOptions)
@@ -475,7 +441,8 @@ function testBinding(bindingName, Binding, testPort) {
           return
         }
 
-        let binding, buffer
+        let binding: BindingInterface
+        let buffer: Buffer
         beforeEach(async () => {
           buffer = Buffer.alloc(readyData.length)
           binding = new Binding()
@@ -524,7 +491,7 @@ function testBinding(bindingName, Binding, testPort) {
           return
         }
 
-        let binding
+        let binding: BindingInterface
         beforeEach(() => {
           binding = new Binding()
           return binding.open(testPort, defaultOpenOptions)

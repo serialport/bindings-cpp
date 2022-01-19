@@ -11,7 +11,7 @@ const writable = binding => {
   })
 }
 
-const unixWrite = async ({ binding, buffer, offset = 0, fsWriteAsync = writeAsync }) => {
+export const unixWrite = async ({ binding, buffer, offset = 0, fsWriteAsync = writeAsync }) => {
   const bytesToWrite = buffer.length - offset
   logger('Starting write', buffer.length, 'bytes offset', offset, 'bytesToWrite', bytesToWrite)
   if (!binding.isOpen) {
@@ -54,4 +54,3 @@ const unixWrite = async ({ binding, buffer, offset = 0, fsWriteAsync = writeAsyn
     throw err
   }
 }
-module.exports = unixWrite

@@ -1,6 +1,7 @@
-const unixWrite = require('./unix-write')
-const { randomBytes } = require('crypto')
-const { promisify } = require('util')
+import { assert, shouldReject } from '../test/assert'
+import { unixWrite } from './unix-write'
+import { randomBytes } from 'crypto'
+import { promisify } from 'util'
 const randomBytesAsync = promisify(randomBytes)
 
 const makeMockBinding = () => {

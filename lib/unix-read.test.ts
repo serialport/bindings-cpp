@@ -1,4 +1,5 @@
-const unixRead = require('./unix-read')
+import { assert, shouldReject } from '../test/assert'
+import { unixRead } from './unix-read'
 
 const makeFsRead = (bytesRead, fill) => (fd, buffer, offset, length) => {
   buffer.fill(fill, offset, Math.min(length, bytesRead))
@@ -15,7 +16,7 @@ const makeFsReadError = code => {
     throw err
   }
 }
-
+d
 const sequenceCalls = (...functions) => {
   const funcs = [...functions]
   return (...args) => {
