@@ -52,15 +52,15 @@ export class Poller extends EventEmitter {
    */
   once(event: 'readable' | 'writable' | 'disconnect', callback: (err: null | Error) => void): this {
     switch (event) {
-      case 'readable':
-        this.poll(EVENTS.UV_READABLE)
-        break
-      case 'writable':
-        this.poll(EVENTS.UV_WRITABLE)
-        break
-      case 'disconnect':
-        this.poll(EVENTS.UV_DISCONNECT)
-        break
+    case 'readable':
+      this.poll(EVENTS.UV_READABLE)
+      break
+    case 'writable':
+      this.poll(EVENTS.UV_WRITABLE)
+      break
+    case 'disconnect':
+      this.poll(EVENTS.UV_DISCONNECT)
+      break
     }
     return super.once(event, callback)
   }
@@ -69,9 +69,7 @@ export class Poller extends EventEmitter {
    * Ask the bindings to listen for an event, it is recommend to use `.once()` for easy use
    * @param {EVENTS} eventFlag polls for an event or group of events based upon a flag.
    */
-  poll(eventFlag: number) {
-    eventFlag = eventFlag || 0
-
+  poll(eventFlag = 0) {
     if (eventFlag & EVENTS.UV_READABLE) {
       logger('Polling for "readable"')
     }

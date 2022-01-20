@@ -3,13 +3,13 @@ import { unixRead } from './unix-read'
 
 const makeFsRead =
   (bytesRead: number, fill: number): any =>
-  (fd: number, buffer: Buffer, offset: number, length: number) => {
-    buffer.fill(fill, offset, Math.min(length, bytesRead))
-    return {
-      buffer,
-      bytesRead,
+    (fd: number, buffer: Buffer, offset: number, length: number) => {
+      buffer.fill(fill, offset, Math.min(length, bytesRead))
+      return {
+        buffer,
+        bytesRead,
+      }
     }
-  }
 
 const makeFsReadError = code => {
   const err = new Error(`Error: ${code}`)

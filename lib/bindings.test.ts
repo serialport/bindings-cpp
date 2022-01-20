@@ -4,7 +4,6 @@ import { BindingInterface, OpenOptions, PortInfo, SetOptions } from './types'
 import Binding, { AllBindingClasses } from './index'
 import MockBinding from '@serialport/binding-mock'
 
-/* eslint-disable mocha/no-pending-tests */
 const defaultOpenOptions: OpenOptions = Object.freeze({
   baudRate: 9600,
   dataBits: 8,
@@ -46,7 +45,7 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
   describe(`bindings/${bindingName}`, () => {
     before(() => {
       if (bindingName === 'mock') {
-        ;(Binding as MockBinding).createPort(testPort, { echo: true, readyData })
+        (Binding as MockBinding).createPort(testPort, { echo: true, readyData })
       }
     })
 
@@ -249,7 +248,7 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
         it('errors when not called with options', async () => {
           await shouldReject(
             (binding as any).set(() => {}),
-            Error
+            Error,
           )
         })
 
@@ -273,7 +272,7 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
                 assert.instanceOf(err, Error)
                 assert(noZalgo)
                 done()
-              }
+              },
             )
             .catch(done)
           noZalgo = true
@@ -285,7 +284,7 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
         })
 
         if (!testPort) {
-          it(`Cannot be tested as we have no test ports available`)
+          it('Cannot be tested as we have no test ports available')
           return
         }
 
@@ -400,7 +399,7 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
           const binding = new Binding()
           await shouldReject(
             (binding as any).set(() => {}),
-            TypeError
+            TypeError,
           )
         })
 
@@ -452,7 +451,7 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
 
         afterEach(() => binding.isOpen && binding.close())
 
-        it("doesn't throw if the port is open", async () => {
+        it('doesn\'t throw if the port is open', async () => {
           await binding.read(buffer, 0, buffer.length)
         })
 

@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-exports */
 import testConfig from './config.json'
 
 export const makeTestFeature = (envName: string) => {

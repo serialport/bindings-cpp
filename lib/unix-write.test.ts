@@ -116,7 +116,7 @@ describe('unixWrite', () => {
       makeFsWriteError('EAGAIN'),
       makeFsWriteError('EWOULDBLOCK'),
       makeFsWriteError('EINTR'),
-      fsWriteAsyncReal
+      fsWriteAsyncReal,
     )
 
     await unixWrite({ binding: mock, buffer: writeBuffer, fsWriteAsync })

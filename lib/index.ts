@@ -10,17 +10,17 @@ export type AllBindings = WindowsBinding | DarwinBinding | LinuxBinding
 
 let binding: AllBindingClasses
 switch (process.platform) {
-  case 'win32':
-    debug('loading WindowsBinding')
-    binding = require('./win32').WindowsBinding
-    break
-  case 'darwin':
-    debug('loading DarwinBinding')
-    binding = require('./darwin').DarwinBinding
-    break
-  default:
-    debug('loading LinuxBinding')
-    binding = require('./linux').LinuxBinding
+case 'win32':
+  debug('loading WindowsBinding')
+  binding = require('./win32').WindowsBinding
+  break
+case 'darwin':
+  debug('loading DarwinBinding')
+  binding = require('./darwin').DarwinBinding
+  break
+default:
+  debug('loading LinuxBinding')
+  binding = require('./linux').LinuxBinding
 }
 
 export default binding

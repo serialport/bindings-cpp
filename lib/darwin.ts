@@ -95,7 +95,7 @@ export class DarwinBinding extends BindingInterface {
   async read(
     buffer: Buffer,
     offset: number,
-    length: number
+    length: number,
   ): Promise<{
     buffer: Buffer
     bytesRead: number
