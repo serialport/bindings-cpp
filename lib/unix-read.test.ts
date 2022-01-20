@@ -16,7 +16,7 @@ const makeFsReadError = code => {
     throw err
   }
 }
-d
+
 const sequenceCalls = (...functions) => {
   const funcs = [...functions]
   return (...args) => {

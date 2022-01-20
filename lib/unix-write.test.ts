@@ -2,6 +2,7 @@ import { assert, shouldReject } from '../test/assert'
 import { unixWrite } from './unix-write'
 import { randomBytes } from 'crypto'
 import { promisify } from 'util'
+import { DarwinBinding } from './darwin'
 const randomBytesAsync = promisify(randomBytes)
 
 const makeMockBinding = () => {
@@ -10,11 +11,11 @@ const makeMockBinding = () => {
     fd: 1,
     poller: {
       error: null,
-      once(event, func) {
+      once(event: any, func: (err: null | Error) => void) {
         setImmediate(() => func(this.error))
       },
     },
-  }
+  } as any
 }
 
 const makeFsWrite = (maxBytesToWrite = Infinity) => {
@@ -23,7 +24,7 @@ const makeFsWrite = (maxBytesToWrite = Infinity) => {
     writeBuffer: Buffer.alloc(0),
     writes: 0,
   }
-  const fsWriteAsync = (fd, buffer, offset, bytesToWrite) => {
+  const fsWriteAsync: any = (fd: number, buffer: Buffer, offset: number, bytesToWrite: number) => {
     const bytesWritten = Math.min(maxBytesToWrite, bytesToWrite)
     info.bytesWritten += bytesWritten
     info.writeBuffer = Buffer.concat([info.writeBuffer, buffer.slice(offset, offset + bytesWritten)])
@@ -54,14 +55,14 @@ const sequenceCalls = (...functions) => {
 
 const makeFsWriteError = code => {
   const err = new Error(`Error: ${code}`)
-  err.code = code
+  ;(err as any).code = code
   return () => {
     throw err
   }
 }
 
 describe('unixWrite', () => {
-  let mock
+  let mock: ReturnType<typeof makeMockBinding>
   beforeEach(() => {
     mock = makeMockBinding()
   })

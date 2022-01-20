@@ -1,6 +1,8 @@
 import { assert, shouldReject } from '../test/assert'
 import { makeTestFeature } from '../test/test-config'
-import { BindingInterface, BindingStaticInterface, OpenOptions, PortInfo, SetOptions } from './types'
+import { BindingInterface, OpenOptions, PortInfo, SetOptions } from './types'
+import Binding, { AllBindingClasses } from './index'
+import MockBinding from '@serialport/binding-mock'
 
 /* eslint-disable mocha/no-pending-tests */
 const defaultOpenOptions: OpenOptions = Object.freeze({
@@ -35,10 +37,10 @@ const listFields = ['path', 'manufacturer', 'serialNumber', 'pnpId', 'locationId
 // the default firmware is called arduinoEcho.ino
 const readyData = Buffer.from('READY')
 
-testBinding('mock', require('@serialport/binding-mock'), '/dev/exists')
-testBinding(process.platform, require(`./index`), process.env.TEST_PORT)
+testBinding('mock', MockBinding, '/dev/exists')
+testBinding(process.platform, Binding, process.env.TEST_PORT)
 
-function testBinding(bindingName: string, Binding: BindingStaticInterface, testPort?: string) {
+function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?: string) {
   const testFeature = makeTestFeature(bindingName)
 
   describe(`bindings/${bindingName}`, () => {
@@ -51,6 +53,7 @@ function testBinding(bindingName: string, Binding: BindingStaticInterface, testP
     describe('static method', () => {
       describe('.list', () => {
         it('returns an array', async () => {
+          console.log({ Binding })
           const ports = await Binding.list()
           assert.isArray(ports)
         })
@@ -142,7 +145,7 @@ function testBinding(bindingName: string, Binding: BindingStaticInterface, testP
         })
 
         describe('arbitrary baud rates', () => {
-          [25000, 1000000, 250000].forEach(testBaud => {
+          ;[25000, 1000000, 250000].forEach(testBaud => {
             describe(`${testBaud} baud`, () => {
               const customRates = { ...defaultOpenOptions, baudRate: testBaud }
               testFeature(`baudrate.${testBaud}`, `opens at ${testBaud} baud`, async () => {

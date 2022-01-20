@@ -29,7 +29,7 @@
   "rules": {
     "no-extra-semi": "off",
     "no-process-exit": "off",
-    "no-unused-vars": [ "error", { "vars": "all", "args": "after-used" }],
+    "no-unused-vars": [ "off", { "vars": "all", "args": "after-used" }],
     "no-var": "error",
     "object-shorthand": "error",
     "prefer-arrow-callback": "error",
