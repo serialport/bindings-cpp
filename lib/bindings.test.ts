@@ -142,7 +142,7 @@ function testBinding(bindingName: string, Binding: BindingStaticInterface, testP
         })
 
         describe('arbitrary baud rates', () => {
-          ;[25000, 1000000, 250000].forEach(testBaud => {
+          [25000, 1000000, 250000].forEach(testBaud => {
             describe(`${testBaud} baud`, () => {
               const customRates = { ...defaultOpenOptions, baudRate: testBaud }
               testFeature(`baudrate.${testBaud}`, `opens at ${testBaud} baud`, async () => {

@@ -6,19 +6,19 @@ import { linuxList } from './linux-list'
 import { Poller } from './poller'
 import { unixRead } from './unix-read'
 import { unixWrite } from './unix-write'
-import { BindingInterface, BindingStaticInterface, OpenOptions, SetOptions, UpdateOptions } from './types'
+import { BindingInterface, OpenOptions, SetOptions, UpdateOptions } from './types'
 
 const binding = nodeGypBuild(join(__dirname, '../'))
 const debug = debugFactory('serialport/bindings-cpp')
 
-const asyncOpen = promisify(binding.open)
 const asyncClose = promisify(binding.close)
-const asyncUpdate = promisify(binding.update)
-const asyncSet = promisify(binding.set)
-const asyncGet = promisify(binding.get)
-const asyncGetBaudRate = promisify(binding.getBaudRate)
 const asyncDrain = promisify(binding.drain)
 const asyncFlush = promisify(binding.flush)
+const asyncGet = promisify(binding.get)
+const asyncGetBaudRate = promisify(binding.getBaudRate)
+const asyncOpen = promisify(binding.open)
+const asyncSet = promisify(binding.set)
+const asyncUpdate = promisify(binding.update)
 
 export interface LinuxBindingOptions {
   /** see [`man termios`](http://linux.die.net/man/3/termios) defaults to 1 */
@@ -36,7 +36,7 @@ interface LinuxSetOptions extends SetOptions {
 /**
  * The linux binding layer
  */
-export const LinuxBinding: BindingStaticInterface = class implements BindingInterface {
+export class LinuxBinding extends BindingInterface {
   bindingOptions: LinuxBindingOptions
   fd: null | number
   writeOperation: Promise<void> | null
@@ -49,6 +49,7 @@ export const LinuxBinding: BindingStaticInterface = class implements BindingInte
   }
 
   constructor(opt?: LinuxBindingOptions) {
+    super()
     this.bindingOptions = {
       vmin: 1,
       vtime: 0,

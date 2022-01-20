@@ -2,28 +2,28 @@ import debugFactory from 'debug'
 import nodeGypBuild from 'node-gyp-build'
 import { promisify } from 'util'
 import { join } from 'path'
-import { BindingInterface, BindingStaticInterface, OpenOptions, PortInfo, SetOptions, UpdateOptions } from './types'
+import { BindingInterface, OpenOptions, PortInfo, SetOptions, UpdateOptions } from './types'
 import { serialNumParser } from './win32-sn-parser'
 
 const binding = nodeGypBuild(join(__dirname, '../'))
 const debug = debugFactory('serialport/bindings-cpp')
 
-const asyncList = promisify(binding.list)
-const asyncOpen = promisify(binding.open)
 const asyncClose = promisify(binding.close)
-const asyncRead = promisify(binding.read)
-const asyncWrite = promisify(binding.write)
-const asyncUpdate = promisify(binding.update)
-const asyncSet = promisify(binding.set)
-const asyncGet = promisify(binding.get)
-const asyncGetBaudRate = promisify(binding.getBaudRate)
 const asyncDrain = promisify(binding.drain)
 const asyncFlush = promisify(binding.flush)
+const asyncGet = promisify(binding.get)
+const asyncGetBaudRate = promisify(binding.getBaudRate)
+const asyncList = promisify(binding.list)
+const asyncOpen = promisify(binding.open)
+const asyncRead = promisify(binding.read)
+const asyncSet = promisify(binding.set)
+const asyncUpdate = promisify(binding.update)
+const asyncWrite = promisify(binding.write)
 
 /**
  * The Windows binding layer
  */
-export const WindowsBinding: BindingStaticInterface = class implements BindingInterface {
+export class WindowsBinding extends BindingInterface {
   fd: null | number
   writeOperation: Promise<void> | null
   openOptions: OpenOptions | null
@@ -46,6 +46,7 @@ export const WindowsBinding: BindingStaticInterface = class implements BindingIn
   }
 
   constructor() {
+    super()
     this.fd = null
     this.writeOperation = null
   }

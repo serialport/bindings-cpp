@@ -51,33 +51,31 @@ export interface PortStatus {
   dcd: boolean
 }
 
-export interface BindingStaticInterface {
-  /**
-    Retrieves a list of available serial ports with metadata. The `path` must be guaranteed, and all other fields should be undefined if unavailable. The `path` is either the path or an identifier (eg `COM1`) used to open the serialport.
-   */
-  list(): Promise<PortInfo[]>
-
-  new (..._foo: any[]): BindingInterface
-}
-
 /**
  * You never have to use `Binding` objects directly. SerialPort uses them to access the underlying hardware. This documentation is geared towards people who are making bindings for different platforms. This interface is implemented in all bindings.
  */
-export interface BindingInterface {
+export abstract class BindingInterface {
+  /**
+    Retrieves a list of available serial ports with metadata. The `path` must be guaranteed, and all other fields should be undefined if unavailable. The `path` is either the path or an identifier (eg `COM1`) used to open the serialport.
+   */
+  static async list(): Promise<PortInfo[]> {
+    throw new Error('Not Implemented')
+  }
+
   /**
    * Required property. `true` if the port is open, `false` otherwise. Should be read-only.
    */
-  isOpen: boolean
+  abstract isOpen: boolean
 
   /**
    * Opens a connection to the serial port referenced by the path.
    */
-  open(path: string, options?: OpenOptions): Promise<void>
+  abstract open(path: string, options?: OpenOptions): Promise<void>
 
   /**
    * Closes an open connection
    */
-  close(): Promise<void>
+  abstract close(): Promise<void>
 
   /**
     Request a number of bytes from the SerialPort. This function is similar to Node's [`fs.read`](http://nodejs.org/api/fs.html#fs_fs_read_fd_buffer_offset_length_position_callback) except it will always return at least one byte.
@@ -88,7 +86,7 @@ export interface BindingInterface {
    * @param length Specifies the maximum number of bytes to read.
    * @returns {Promise} Resolves with the number of bytes read after a read operation.
    */
-  read(buffer: Buffer, offset: number, length: number): Promise<{ buffer: Buffer; bytesRead: number }>
+  abstract read(buffer: Buffer, offset: number, length: number): Promise<{ buffer: Buffer; bytesRead: number }>
 
   /**
   Write bytes to the SerialPort. Only called when there is no pending write operation.
@@ -97,39 +95,39 @@ export interface BindingInterface {
 
   Resolves after the data is passed to the operating system for writing.
    */
-  write(buffer: Buffer): Promise<void>
+  abstract write(buffer: Buffer): Promise<void>
 
   /**
     Changes connection settings on an open port.
    */
-  update(options: UpdateOptions): Promise<void>
+  abstract update(options: UpdateOptions): Promise<void>
 
   /**
    * Set control flags on an open port.
    * All options are operating system default when the port is opened. Every flag is set on each call to the provided or default values.
    */
-  set(options: SetOptions): Promise<void>
+  abstract set(options: SetOptions): Promise<void>
 
   /**
    * Get the control flags (CTS, DSR, DCD) on the open port.
    */
-  get(): Promise<PortStatus>
+  abstract get(): Promise<PortStatus>
 
   /**
    * Get the OS reported baud rate for the open port.
    * Used mostly for debugging custom baud rates.
    */
-  getBaudRate(): Promise<{ baudRate: number }>
+  abstract getBaudRate(): Promise<{ baudRate: number }>
 
   /**
    * Flush (discard) data received but not read, and written but not transmitted.
    * Resolves once the flush operation finishes.
    */
-  flush(): Promise<void>
+  abstract flush(): Promise<void>
 
   /**
    * Drain waits until all output data is transmitted to the serial port. An in progress write should be completed before this returns.
    * Resolves once the drain operation finishes.
    */
-  drain(): Promise<void>
+  abstract drain(): Promise<void>
 }

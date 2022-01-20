@@ -2,7 +2,7 @@ import debugFactory from 'debug'
 import { promisify } from 'util'
 import { join } from 'path'
 import nodeGypBuild from 'node-gyp-build'
-import { BindingInterface, BindingStaticInterface, OpenOptions, SetOptions, UpdateOptions } from './types'
+import { BindingInterface, OpenOptions, SetOptions, UpdateOptions } from './types'
 import { Poller } from './poller'
 import { unixRead } from './unix-read'
 import { unixWrite } from './unix-write'
@@ -10,15 +10,15 @@ import { unixWrite } from './unix-write'
 const binding = nodeGypBuild(join(__dirname, '../'))
 const debug = debugFactory('serialport/bindings-cpp')
 
-const asyncList = promisify(binding.list)
-const asyncOpen = promisify(binding.open)
 const asyncClose = promisify(binding.close)
-const asyncUpdate = promisify(binding.update)
-const asyncSet = promisify(binding.set)
-const asyncGet = promisify(binding.get)
-const asyncGetBaudRate = promisify(binding.getBaudRate)
 const asyncDrain = promisify(binding.drain)
 const asyncFlush = promisify(binding.flush)
+const asyncGet = promisify(binding.get)
+const asyncGetBaudRate = promisify(binding.getBaudRate)
+const asyncList = promisify(binding.list)
+const asyncOpen = promisify(binding.open)
+const asyncSet = promisify(binding.set)
+const asyncUpdate = promisify(binding.update)
 
 export interface DarwinBindingOptions {
   /** see [`man termios`](http://linux.die.net/man/3/termios) defaults to 1 */
@@ -30,19 +30,20 @@ export interface DarwinBindingOptions {
 /**
  * The Darwin binding layer for OSX
  */
-export const DarwinBinding: BindingStaticInterface = class implements BindingInterface {
+export class DarwinBinding extends BindingInterface {
   bindingOptions: DarwinBindingOptions
   fd: null | number
   writeOperation: Promise<void> | null
   openOptions: (DarwinBindingOptions & OpenOptions) | null
   poller: Poller | null
 
-  static list(): ReturnType<BindingStaticInterface['list']> {
+  static async list() {
     debug('list')
     return asyncList()
   }
 
   constructor(opt?: DarwinBindingOptions) {
+    super()
     this.bindingOptions = {
       vmin: 1,
       vtime: 0,

@@ -1,16 +1,22 @@
 import debugFactory from 'debug'
+import { DarwinBinding } from './darwin'
+import { LinuxBinding } from './linux'
+import { WindowsBinding } from './win32'
 const debug = debugFactory('serialport/bindings-cpp')
 
+let binding: typeof WindowsBinding | typeof DarwinBinding | typeof LinuxBinding
 switch (process.platform) {
   case 'win32':
     debug('loading WindowsBinding')
-    module.exports = require('./win32').WindowsBinding
+    binding = WindowsBinding
     break
   case 'darwin':
     debug('loading DarwinBinding')
-    module.exports = require('./darwin').DarwinBinding
+    binding = DarwinBinding
     break
   default:
     debug('loading LinuxBinding')
-    module.exports = require('./linux').LinuxBinding
+    binding = LinuxBinding
 }
+
+export default binding
