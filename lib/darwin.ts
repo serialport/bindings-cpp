@@ -2,7 +2,7 @@ import debugFactory from 'debug'
 import { promisify } from 'util'
 import { join } from 'path'
 import nodeGypBuild from 'node-gyp-build'
-import { BindingInterface, OpenOptions, SetOptions, UpdateOptions } from './types'
+import { BindingInterface, OpenOptions, PortInfo, SetOptions, UpdateOptions } from './types'
 import { Poller } from './poller'
 import { unixRead } from './unix-read'
 import { unixWrite } from './unix-write'
@@ -37,7 +37,7 @@ export class DarwinBinding extends BindingInterface {
   openOptions: (DarwinBindingOptions & OpenOptions) | null
   poller: Poller | null
 
-  static async list() {
+  static async list(): Promise<PortInfo[]> {
     debug('list')
     return asyncList()
   }

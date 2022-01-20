@@ -1,5 +1,5 @@
 import { assert, shouldReject } from '../test/assert'
-import { makeTestFeature } from '../test/test-config'
+import { makeTestFeature } from '../test/makeTestFeature'
 import { BindingInterface, OpenOptions, PortInfo, SetOptions } from './types'
 import Binding, { AllBindingClasses } from './index'
 import MockBinding from '@serialport/binding-mock'
@@ -46,7 +46,7 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
   describe(`bindings/${bindingName}`, () => {
     before(() => {
       if (bindingName === 'mock') {
-        (Binding as MockBinding).createPort(testPort, { echo: true, readyData })
+        ;(Binding as MockBinding).createPort(testPort, { echo: true, readyData })
       }
     })
 
@@ -145,7 +145,7 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
         })
 
         describe('arbitrary baud rates', () => {
-          ;[25000, 1000000, 250000].forEach(testBaud => {
+          [25000, 1000000, 250000].forEach(testBaud => {
             describe(`${testBaud} baud`, () => {
               const customRates = { ...defaultOpenOptions, baudRate: testBaud }
               testFeature(`baudrate.${testBaud}`, `opens at ${testBaud} baud`, async () => {

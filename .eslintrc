@@ -51,6 +51,7 @@
     "mocha/no-pending-tests": "error",
     "mocha/no-setup-in-describe": "off",
     "strict": [ "error", "never" ],
-    "valid-jsdoc": "off"
+    "valid-jsdoc": "off",
+    "@typescript-eslint/no-empty-function": "warn"
   }
 }

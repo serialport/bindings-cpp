@@ -100,7 +100,7 @@ describe('unixWrite', () => {
   })
   it('errors if the poller errors after a partial write', async () => {
     const writeBuffer = await randomBytesAsync(16)
-    const fsWriteAsync = () => {
+    const fsWriteAsync: any = () => {
       mock.poller.error = new Error('PollerError')
       makeFsWriteError('EAGAIN')()
     }
@@ -130,7 +130,7 @@ describe('unixWrite', () => {
   })
   it('rejects an error if port closes after read a retryable error', async () => {
     const writeBuffer = Buffer.alloc(8, 0)
-    const fsWriteAsync = () => {
+    const fsWriteAsync: any = () => {
       mock.isOpen = false
       makeFsWriteError('EAGAIN')()
     }

@@ -1,17 +1,19 @@
 import { assert, shouldReject } from '../test/assert'
 import { unixRead } from './unix-read'
 
-const makeFsRead = (bytesRead, fill) => (fd, buffer, offset, length) => {
-  buffer.fill(fill, offset, Math.min(length, bytesRead))
-  return {
-    buffer,
-    bytesRead,
+const makeFsRead =
+  (bytesRead: number, fill: number): any =>
+  (fd: number, buffer: Buffer, offset: number, length: number) => {
+    buffer.fill(fill, offset, Math.min(length, bytesRead))
+    return {
+      buffer,
+      bytesRead,
+    }
   }
-}
 
 const makeFsReadError = code => {
   const err = new Error(`Error: ${code}`)
-  err.code = code
+  ;(err as any).code = code
   return () => {
     throw err
   }
@@ -89,7 +91,7 @@ describe('unixRead', () => {
   })
   it('rejects a canceled error if port closes after read a retryable error', async () => {
     const readBuffer = Buffer.alloc(8, 0)
-    const fsReadAsync = () => {
+    const fsReadAsync: any = () => {
       mock.isOpen = false
       makeFsReadError('EAGAIN')()
     }

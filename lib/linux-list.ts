@@ -1,7 +1,7 @@
 import { PortInfo } from './types'
 
-const childProcess = require('child_process')
-const Readline = require('@serialport/parser-readline')
+import { spawn } from 'child_process'
+import Readline from '@serialport/parser-readline'
 
 // get only serial port names
 function checkPathOfDevice(path: string) {
@@ -39,9 +39,9 @@ function propVal(name: string, val: string) {
   return val
 }
 
-export function linuxList(spawn: typeof childProcess.spawn = childProcess.spawn) {
+export function linuxList(spawnCmd: typeof spawn = spawn) {
   const ports: PortInfo[] = []
-  const udevadm = spawn('udevadm', ['info', '-e'])
+  const udevadm = spawnCmd('udevadm', ['info', '-e'])
   const lines = udevadm.stdout.pipe(new Readline())
 
   let skipPort = false
