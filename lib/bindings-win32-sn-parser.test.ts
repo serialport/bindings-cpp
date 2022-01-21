@@ -35,5 +35,8 @@ describe('serialNumParser', () => {
       const serialNumber = info.serialNumber
       assert.equal(serialNumParser(pnpId), serialNumber)
     })
+    it(`parses pnp id for ${device}`, () => {
+      assert.equal(serialNumParser(undefined), null)
+    })
   }
 })
