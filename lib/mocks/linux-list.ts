@@ -3,7 +3,6 @@
 import { EventEmitter } from 'events'
 import { Readable } from 'stream'
 import { linuxList } from '../linux-list'
-import { spawn } from 'child_process'
 
 export const mockLinuxList = (mockUDevOutput: string) => {
   return linuxList(() => {

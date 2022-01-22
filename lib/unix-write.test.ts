@@ -2,7 +2,6 @@ import { assert, shouldReject } from '../test/assert'
 import { unixWrite } from './unix-write'
 import { randomBytes } from 'crypto'
 import { promisify } from 'util'
-import { DarwinBinding } from './darwin'
 const randomBytesAsync = promisify(randomBytes)
 
 const makeMockBinding = () => {
