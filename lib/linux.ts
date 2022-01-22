@@ -6,7 +6,7 @@ import { linuxList } from './linux-list'
 import { Poller } from './poller'
 import { unixRead } from './unix-read'
 import { unixWrite } from './unix-write'
-import { BindingInterface, OpenOptions, SetOptions, UpdateOptions } from './types'
+import { BindingInterface, OpenOptions, SetOptions, UpdateOptions } from './binding-interface'
 
 const binding = nodeGypBuild(join(__dirname, '../'))
 const debug = debugFactory('serialport/bindings-cpp')

@@ -2,7 +2,7 @@ import debugFactory from 'debug'
 import nodeGypBuild from 'node-gyp-build'
 import { promisify } from 'util'
 import { join } from 'path'
-import { BindingInterface, OpenOptions, PortInfo, SetOptions, UpdateOptions } from './types'
+import { BindingInterface, OpenOptions, PortInfo, SetOptions, UpdateOptions } from './binding-interface'
 import { serialNumParser } from './win32-sn-parser'
 
 const binding = nodeGypBuild(join(__dirname, '../'))

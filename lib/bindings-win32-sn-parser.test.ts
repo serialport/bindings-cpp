@@ -26,17 +26,17 @@ const devices = {
     pnpId: 'WATEVER\\Whoever\\However!',
     serialNumber: null,
   },
+  'bad data': {
+    pnpId: undefined,
+    serialNumber: null,
+  },
 }
 
 describe('serialNumParser', () => {
   for (const [device, info] of Object.entries(devices)) {
     it(`parses pnp id for ${device}`, () => {
-      const pnpId = info.pnpId
-      const serialNumber = info.serialNumber
+      const { pnpId, serialNumber } = info
       assert.equal(serialNumParser(pnpId), serialNumber)
-    })
-    it(`parses pnp id for ${device}`, () => {
-      assert.equal(serialNumParser(undefined), null)
     })
   }
 })

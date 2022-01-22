@@ -1,6 +1,6 @@
 import { assert, shouldReject } from '../test/assert'
 import { makeTestFeature } from '../test/makeTestFeature'
-import { BindingInterface, OpenOptions, PortInfo, SetOptions } from './types'
+import { BindingInterface, OpenOptions, PortInfo, SetOptions } from './binding-interface'
 import Binding, { AllBindingClasses } from './index'
 import MockBinding from '@serialport/binding-mock'
 
@@ -40,7 +40,7 @@ testBinding('mock', MockBinding, '/dev/exists')
 testBinding(process.platform, Binding, process.env.TEST_PORT)
 
 function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?: string) {
-  const testFeature = makeTestFeature(bindingName)
+  const { testFeature, testHardware, testHardwareFeature, describeHardware } = makeTestFeature(bindingName, testPort)
 
   describe(`bindings/${bindingName}`, () => {
     before(() => {
@@ -130,20 +130,22 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
           return
         }
 
-        it('cannot open if already open', async () => {
-          const options = { ...defaultOpenOptions, lock: false }
-          await binding.open(testPort, options)
-          await shouldReject(binding.open(testPort, options))
-          await binding.close()
+        describeHardware('with hardware', () => {
+          it('cannot open if already open', async () => {
+            const options = { ...defaultOpenOptions, lock: false }
+            await binding.open(testPort, options)
+            await shouldReject(binding.open(testPort, options))
+            await binding.close()
+          })
+
+          it('keeps open state', async () => {
+            await binding.open(testPort, defaultOpenOptions)
+            assert.equal(binding.isOpen, true)
+            await binding.close()
+          })
         })
 
-        it('keeps open state', async () => {
-          await binding.open(testPort, defaultOpenOptions)
-          assert.equal(binding.isOpen, true)
-          await binding.close()
-        })
-
-        describe('arbitrary baud rates', () => {
+        describeHardware('arbitrary baud rates', () => {
           [25000, 1000000, 250000].forEach(testBaud => {
             describe(`${testBaud} baud`, () => {
               const customRates = { ...defaultOpenOptions, baudRate: testBaud }
@@ -163,7 +165,7 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
           })
         })
 
-        describe('optional locking', () => {
+        describeHardware('optional locking', () => {
           it('locks the port by default', async () => {
             const binding2 = new Binding()
             await binding.open(testPort, defaultOpenOptions)
@@ -198,13 +200,8 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
           await shouldReject(binding.close())
         })
 
-        if (!testPort) {
-          it('Cannot be tested further. Set the TEST_PORT env var with an available serialport for more testing.')
-          return
-        }
-
-        it('closes an open file descriptor', () => {
-          return binding.open(testPort, defaultOpenOptions).then(() => {
+        testHardware('closes an open file descriptor', () => {
+          return binding.open(testPort!, defaultOpenOptions).then(() => {
             assert.equal(binding.isOpen, true)
             return binding.close()
           })
@@ -228,32 +225,29 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
           noZalgo = true
         })
 
-        if (!testPort) {
-          it('Cannot be tested further. Set the TEST_PORT env var with an available serialport for more testing.')
-          return
-        }
+        describeHardware('update with hardware', () => {
+          let binding: BindingInterface
+          beforeEach(() => {
+            binding = new Binding()
+            return binding.open(testPort, defaultOpenOptions)
+          })
 
-        let binding: BindingInterface
-        beforeEach(() => {
-          binding = new Binding()
-          return binding.open(testPort, defaultOpenOptions)
-        })
+          afterEach(() => binding.close())
 
-        afterEach(() => binding.close())
+          it('throws errors when updating nothing', async () => {
+            await shouldReject((binding as any).update({}), Error)
+          })
 
-        it('throws errors when updating nothing', async () => {
-          await shouldReject((binding as any).update({}), Error)
-        })
+          it('errors when not called with options', async () => {
+            await shouldReject(
+              (binding as any).set(() => { }),
+              Error,
+            )
+          })
 
-        it('errors when not called with options', async () => {
-          await shouldReject(
-            (binding as any).set(() => {}),
-            Error,
-          )
-        })
-
-        it('updates baudRate', () => {
-          return binding.update({ baudRate: 57600 })
+          it('updates baudRate', () => {
+            return binding.update({ baudRate: 57600 })
+          })
         })
       })
 
@@ -283,33 +277,30 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
           await shouldReject((binding as any).write(null), TypeError)
         })
 
-        if (!testPort) {
-          it('Cannot be tested as we have no test ports available')
-          return
-        }
+        describeHardware('with hardware', () => {
+          let binding: BindingInterface
+          beforeEach(() => {
+            binding = new Binding()
+            return binding.open(testPort!, defaultOpenOptions)
+          })
 
-        let binding: BindingInterface
-        beforeEach(() => {
-          binding = new Binding()
-          return binding.open(testPort, defaultOpenOptions)
-        })
+          afterEach(() => binding.close())
 
-        afterEach(() => binding.close())
+          it('resolves after a small write', () => {
+            const data = Buffer.from('simple write of 24 bytes')
+            return binding.write(data)
+          })
 
-        it('resolves after a small write', () => {
-          const data = Buffer.from('simple write of 24 bytes')
-          return binding.write(data)
-        })
+          it('resolves after a large write (2k)', function () {
+            this.timeout(20000)
+            const data = Buffer.alloc(1024 * 2)
+            return binding.write(data)
+          })
 
-        it('resolves after a large write (2k)', function () {
-          this.timeout(20000)
-          const data = Buffer.alloc(1024 * 2)
-          return binding.write(data)
-        })
-
-        it('resolves after an empty write', () => {
-          const data = Buffer.from([])
-          return binding.write(data)
+          it('resolves after an empty write', () => {
+            const data = Buffer.from([])
+            return binding.write(data)
+          })
         })
       })
 
@@ -398,7 +389,7 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
         it('throws when not called with options', async () => {
           const binding = new Binding()
           await shouldReject(
-            (binding as any).set(() => {}),
+            (binding as any).set(() => { }),
             TypeError,
           )
         })

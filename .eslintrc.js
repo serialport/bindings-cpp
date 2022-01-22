@@ -38,5 +38,6 @@ module.exports = {
     'space-infix-ops': ['error'],
     'no-multi-spaces': ['error'],
     '@typescript-eslint/no-empty-function': ['off'],
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
   },
 }

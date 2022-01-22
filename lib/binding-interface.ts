@@ -59,7 +59,7 @@ export abstract class BindingInterface {
     Retrieves a list of available serial ports with metadata. The `path` must be guaranteed, and all other fields should be undefined if unavailable. The `path` is either the path or an identifier (eg `COM1`) used to open the serialport.
    */
   static async list(): Promise<PortInfo[]> {
-    throw new Error('Not Implemented')
+    throw new Error('Method not implemented.')
   }
 
   /**
