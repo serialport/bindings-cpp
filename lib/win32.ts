@@ -1,24 +1,9 @@
 import debugFactory from 'debug'
-import nodeGypBuild from 'node-gyp-build'
-import { promisify } from 'util'
-import { join } from 'path'
 import { BindingInterface, OpenOptions, PortInfo, PortStatus, SetOptions, UpdateOptions } from './binding-interface'
+import { asyncClose, asyncDrain, asyncFlush, asyncGet, asyncGetBaudRate, asyncList, asyncOpen, asyncRead, asyncSet, asyncUpdate, asyncWrite } from './load-bindings'
 import { serialNumParser } from './win32-sn-parser'
 
-const binding = nodeGypBuild(join(__dirname, '../')) as any
 const debug = debugFactory('serialport/bindings-cpp')
-
-const asyncClose = promisify(binding.close)
-const asyncDrain = promisify(binding.drain)
-const asyncFlush = promisify(binding.flush)
-const asyncGet = promisify(binding.get)
-const asyncGetBaudRate = promisify(binding.getBaudRate)
-const asyncList = promisify(binding.list)
-const asyncOpen = promisify(binding.open)
-const asyncRead = promisify(binding.read)
-const asyncSet = promisify(binding.set)
-const asyncUpdate = promisify(binding.update)
-const asyncWrite = promisify(binding.write)
 
 /**
  * The Windows binding layer

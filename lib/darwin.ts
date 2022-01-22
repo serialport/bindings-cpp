@@ -1,24 +1,11 @@
 import debugFactory from 'debug'
-import { promisify } from 'util'
-import { join } from 'path'
-import nodeGypBuild from 'node-gyp-build'
 import { BindingInterface, OpenOptions, PortInfo, PortStatus, SetOptions, UpdateOptions } from './binding-interface'
+import { asyncClose, asyncDrain, asyncFlush, asyncGet, asyncGetBaudRate, asyncList, asyncOpen, asyncSet, asyncUpdate } from './load-bindings'
 import { Poller } from './poller'
 import { unixRead } from './unix-read'
 import { unixWrite } from './unix-write'
 
-const binding = nodeGypBuild(join(__dirname, '../')) as any
 const debug = debugFactory('serialport/bindings-cpp')
-
-const asyncClose = promisify(binding.close)
-const asyncDrain = promisify(binding.drain)
-const asyncFlush = promisify(binding.flush)
-const asyncGet = promisify(binding.get)
-const asyncGetBaudRate = promisify(binding.getBaudRate)
-const asyncList = promisify(binding.list)
-const asyncOpen = promisify(binding.open)
-const asyncSet = promisify(binding.set)
-const asyncUpdate = promisify(binding.update)
 
 export interface DarwinBindingOptions {
   /** see [`man termios`](http://linux.die.net/man/3/termios) defaults to 1 */
