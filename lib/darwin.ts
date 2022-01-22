@@ -2,12 +2,12 @@ import debugFactory from 'debug'
 import { promisify } from 'util'
 import { join } from 'path'
 import nodeGypBuild from 'node-gyp-build'
-import { BindingInterface, OpenOptions, PortInfo, SetOptions, UpdateOptions } from './binding-interface'
+import { BindingInterface, OpenOptions, PortInfo, PortStatus, SetOptions, UpdateOptions } from './binding-interface'
 import { Poller } from './poller'
 import { unixRead } from './unix-read'
 import { unixWrite } from './unix-write'
 
-const binding = nodeGypBuild(join(__dirname, '../'))
+const binding = nodeGypBuild(join(__dirname, '../')) as any
 const debug = debugFactory('serialport/bindings-cpp')
 
 const asyncClose = promisify(binding.close)
@@ -77,7 +77,7 @@ export class DarwinBinding extends BindingInterface {
     this.poller = new Poller(fd)
   }
 
-  async close() {
+  async close(): Promise<void> {
     debug('close')
     if (!this.isOpen) {
       throw new Error('Port is not open')
@@ -89,7 +89,7 @@ export class DarwinBinding extends BindingInterface {
     this.poller = null
     this.openOptions = null
     this.fd = null
-    return asyncClose(fd)
+    await asyncClose(fd)
   }
 
   async read(
@@ -124,7 +124,7 @@ export class DarwinBinding extends BindingInterface {
     return unixRead({ binding: this, buffer, offset, length })
   }
 
-  async write(buffer: Buffer) {
+  async write(buffer: Buffer): Promise<void> {
     if (!Buffer.isBuffer(buffer)) {
       throw new TypeError('"buffer" is not a Buffer')
     }
@@ -146,7 +146,7 @@ export class DarwinBinding extends BindingInterface {
     return this.writeOperation
   }
 
-  async update(options: UpdateOptions) {
+  async update(options: UpdateOptions): Promise<void> {
     if (typeof options !== 'object') {
       throw TypeError('"options" is not an object')
     }
@@ -159,10 +159,10 @@ export class DarwinBinding extends BindingInterface {
     if (!this.isOpen) {
       throw new Error('Port is not open')
     }
-    return asyncUpdate(this.fd, options)
+    await asyncUpdate(this.fd, options)
   }
 
-  async set(options: SetOptions) {
+  async set(options: SetOptions): Promise<void> {
     if (typeof options !== 'object') {
       throw new TypeError('"options" is not an object')
     }
@@ -170,10 +170,10 @@ export class DarwinBinding extends BindingInterface {
     if (!this.isOpen) {
       throw new Error('Port is not open')
     }
-    return asyncSet(this.fd, options)
+    await asyncSet(this.fd, options)
   }
 
-  async get() {
+  async get(): Promise<PortStatus> {
     debug('get')
     if (!this.isOpen) {
       throw new Error('Port is not open')
@@ -181,7 +181,7 @@ export class DarwinBinding extends BindingInterface {
     return asyncGet(this.fd)
   }
 
-  async getBaudRate() {
+  async getBaudRate(): Promise<{ baudRate: number }> {
     debug('getBaudRate')
     if (!this.isOpen) {
       throw new Error('Port is not open')
@@ -189,20 +189,20 @@ export class DarwinBinding extends BindingInterface {
     return asyncGetBaudRate(this.fd)
   }
 
-  async flush() {
+  async flush(): Promise<void> {
     debug('flush')
     if (!this.isOpen) {
       throw new Error('Port is not open')
     }
-    return asyncFlush(this.fd)
+    await asyncFlush(this.fd)
   }
 
-  async drain() {
+  async drain(): Promise<void> {
     debug('drain')
     if (!this.isOpen) {
       throw new Error('Port is not open')
     }
     await this.writeOperation
-    return asyncDrain(this.fd)
+    await asyncDrain(this.fd)
   }
 }

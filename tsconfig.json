@@ -5,7 +5,7 @@
     "target": "es2017",
     "moduleResolution": "node",
     "module": "commonjs",
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "strictNullChecks": true,
     "declaration": true,
     "importHelpers": false,

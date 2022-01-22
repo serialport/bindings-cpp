@@ -30,6 +30,8 @@ export interface OpenOptions {
   xoff: boolean
   /** Flow control Setting */
   xany: boolean
+  /** drop DTR on close */
+  hupcl: boolean
 }
 
 export interface UpdateOptions {

@@ -40,9 +40,10 @@ const makeFsWrite = (maxBytesToWrite = Infinity) => {
   }
 }
 
-const sequenceCalls = (...functions) => {
+// eslint-disable-next-line @typescript-eslint/ban-types
+const sequenceCalls = (...functions: Function[]) => {
   const funcs = [...functions]
-  return (...args) => {
+  return (...args: any[]) => {
     const func = funcs.shift()
     if (func) {
       return func(...args)
@@ -52,7 +53,7 @@ const sequenceCalls = (...functions) => {
   }
 }
 
-const makeFsWriteError = code => {
+const makeFsWriteError = (code: string) => {
   const err = new Error(`Error: ${code}`)
   ;(err as any).code = code
   return () => {
@@ -89,7 +90,7 @@ describe('unixWrite', () => {
   it('errors if the port closes after a partial write', async () => {
     const writeBuffer = await randomBytesAsync(16)
     const { fsWriteAsync: realFsWrite, info } = makeFsWrite(8)
-    const fsWriteAsync = (...args) => {
+    const fsWriteAsync = (...args: any[]) => {
       mock.isOpen = false
       return realFsWrite(...args)
     }

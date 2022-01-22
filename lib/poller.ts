@@ -4,7 +4,7 @@ import { join } from 'path'
 import nodeGypBuild from 'node-gyp-build'
 import { CanceledError } from './errors'
 
-const PollerBindings = nodeGypBuild(join(__dirname, '../')).Poller
+const { Poller: PollerBindings } = nodeGypBuild(join(__dirname, '../')) as any
 const logger = debug('serialport/bindings/poller')
 
 export const EVENTS = {
