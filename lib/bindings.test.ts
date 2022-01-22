@@ -40,7 +40,7 @@ testBinding('mock', MockBinding, '/dev/exists')
 testBinding(process.platform, Binding, process.env.TEST_PORT)
 
 function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?: string) {
-  const { testFeature, testHardware, testHardwareFeature, describeHardware } = makeTestFeature(bindingName, testPort)
+  const { testFeature, testHardware, describeHardware } = makeTestFeature(bindingName, testPort)
 
   describe(`bindings/${bindingName}`, () => {
     before(() => {
@@ -229,7 +229,7 @@ function testBinding(bindingName: string, Binding: AllBindingClasses, testPort?:
           let binding: BindingInterface
           beforeEach(() => {
             binding = new Binding()
-            return binding.open(testPort, defaultOpenOptions)
+            return binding.open(testPort!, defaultOpenOptions)
           })
 
           afterEach(() => binding.close())

@@ -54,6 +54,7 @@
     "node": ">=12.17.0 <13.0 || >=14.0.0"
   },
   "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig-build.json",
     "install": "node-gyp-build",
     "prebuild": "prebuildify --napi --target 14.0.0 --force --strip --verbose",
     "prebuild-cross": "prebuildify-cross --napi --target 14.0.0 --force --strip --verbose",
