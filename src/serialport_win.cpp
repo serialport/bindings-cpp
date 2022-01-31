@@ -122,7 +122,11 @@ void OpenBaton::Execute() {
   }
 
   if (rtscts) {
-    dcb.fRtsControl = RTS_CONTROL_HANDSHAKE;
+    if (rtshs) {
+      dcb.fRtsControl = RTS_CONTROL_HANDSHAKE;
+    } else {
+      dcb.fRtsControl = RTS_CONTROL_ENABLE;
+    }
     dcb.fOutxCtsFlow = TRUE;
   } else {
     dcb.fRtsControl = RTS_CONTROL_DISABLE;

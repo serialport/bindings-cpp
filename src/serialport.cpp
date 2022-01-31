@@ -61,6 +61,7 @@ Napi::Value Open(const Napi::CallbackInfo& info) {
   baton->parity = ToParityEnum(getStringFromObj(options, "parity"));
   baton->stopBits = ToStopBitEnum(getDoubleFromObject(options, "stopBits"));
   baton->rtscts = getBoolFromObject(options, "rtscts");
+  baton->rtshs = getBoolFromObject(options, "rtshs");
   baton->xon = getBoolFromObject(options, "xon");
   baton->xoff = getBoolFromObject(options, "xoff");
   baton->xany = getBoolFromObject(options, "xany");
