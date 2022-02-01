@@ -49,7 +49,7 @@ enum SerialPortStopBits {
 enum SerialPortRtsMode {
   SERIALPORT_RTSMODE_ENABLE     = 1,
   SERIALPORT_RTSMODE_HANDSHAKE  = 2,
-  SERIALPORT_RTSMODE_TOGGLE    = 3
+  SERIALPORT_RTSMODE_TOGGLE     = 3
 };
 
 SerialPortParity ToParityEnum(const Napi::String& str);
