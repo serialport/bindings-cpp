@@ -54,7 +54,7 @@ jobs:
           path: prebuilds/
           if-no-files-found: error
       - if: failure()
-        run: ls -la
+        run: npx shx ls -lA
   release:
     needs: prebuild
     name: Release
