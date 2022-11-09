@@ -6,3 +6,4 @@ npm-debug.log
 prebuilds
 .tool-versions
 dist
+dist-esm

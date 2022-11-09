@@ -3,6 +3,7 @@
   "description": "SerialPort Hardware bindings for node serialport written in c++",
   "version": "0.0.0-development",
   "main": "./dist/index.js",
+  "module": "./dist-esm/index.js",
   "types": "./dist/index.d.ts",
   "keywords": [
     "serialport-binding",
@@ -55,7 +56,7 @@
     "node": ">=12.17.0 <13.0 || >=14.0.0"
   },
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig-build.json",
+    "build": "rm -rf dist dist-esm && tsc -p tsconfig-build.json && tsc -p tsconfig-build-esm.json",
     "install": "node-gyp-build",
     "prebuildify": "prebuildify --napi --target 14.0.0 --force --strip --verbose",
     "prebuildify-cross": "prebuildify-cross --napi --target 14.0.0 --force --strip --verbose",
