@@ -49,7 +49,7 @@
     "semantic-release": "19.0.5",
     "shx": "0.3.4",
     "sinon": "15.2.0",
-    "typescript": "5.0.4"
+    "typescript": "5.1.6"
   },
   "engines": {
     "node": ">=14.0.0"
