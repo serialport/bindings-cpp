@@ -1,9 +1,5 @@
-import nodeGypBuild from 'node-gyp-build'
 import { promisify } from 'util'
-import { join } from 'path'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const binding = nodeGypBuild(join(__dirname, '../')) as any
+import { binding } from './serialport-bindings'
 
 export const asyncClose = binding.close ? promisify(binding.close) : async () => { throw new Error('"binding.close" Method not implemented')}
 export const asyncDrain = binding.drain ? promisify(binding.drain) : async () => { throw new Error('"binding.drain" Method not implemented')}
