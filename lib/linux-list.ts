@@ -11,6 +11,7 @@ function propName(name: string) {
   return {
     DEVNAME: 'path',
     ID_VENDOR_ENC: 'manufacturer',
+    ID_MODEL: 'product',
     ID_SERIAL_SHORT: 'serialNumber',
     ID_VENDOR_ID: 'vendorId',
     ID_MODEL_ID: 'productId',
@@ -20,6 +21,7 @@ function propName(name: string) {
     * see https://github.com/serialport/bindings-cpp/issues/115
     */
     ID_USB_VENDOR_ENC: 'manufacturer',
+    ID_USB_MODEL: 'product',
     ID_USB_SERIAL_SHORT: 'serialNumber',
     ID_USB_VENDOR_ID: 'vendorId',
     ID_USB_MODEL_ID: 'productId',
@@ -56,6 +58,7 @@ export function linuxList(spawnCmd: typeof spawn = spawn) {
   let port: PortInfo = {
     path: '',
     manufacturer: undefined,
+    product: undefined,
     serialNumber: undefined,
     pnpId: undefined,
     locationId: undefined,
@@ -71,6 +74,7 @@ export function linuxList(spawnCmd: typeof spawn = spawn) {
       port = {
         path: '',
         manufacturer: undefined,
+        product: undefined,
         serialNumber: undefined,
         pnpId: undefined,
         locationId: undefined,
