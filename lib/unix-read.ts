@@ -39,9 +39,6 @@ export const unixRead = async ({
 
   try {
     const { bytesRead } = await fsReadAsync(binding.fd, buffer, offset, length, null)
-    if (bytesRead === 0) {
-      return unixRead({ binding, buffer, offset, length, fsReadAsync })
-    }
     logger('Finished read', bytesRead, 'bytes')
     return { bytesRead, buffer }
   } catch (err) {
