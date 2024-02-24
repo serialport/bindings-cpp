@@ -16,27 +16,33 @@ jobs:
             os: macos-11
             node: x64
             command: prebuildify
-            args: --arch x64+arm64
+            args: --arch x64+arm64 --target 14.0.0
           - name: win32-x86
             os: windows-2019
             node: x86
             command: prebuildify
+            args: --target 14.0.0
           - name: win32-x64
             os: windows-2019
             node: x64
             command: prebuildify
+            args: --target 14.0.0
+          - name: win32-arm64
+            os: windows-2019
+            command: prebuildify
+            args: --arch arm64 --target 20.11.1
           - name: linux-x64
             os: ubuntu-latest
             command: prebuildify-cross
-            args: -i centos7-devtoolset7 -i alpine
+            args: -i centos7-devtoolset7 -i alpine --target 14.0.0
           - name: linux-arm
             os: ubuntu-latest
             command: prebuildify-cross
-            args: -i linux-arm64-lts -i linux-armv7 -i linux-armv6
+            args: -i linux-arm64-lts -i linux-armv7 -i linux-armv6 --target 14.0.0
           - name: android-arm
             os: ubuntu-latest
             command: prebuildify-cross
-            args: -i android-arm64 -i android-armv7
+            args: -i android-arm64 -i android-armv7 --target 14.0.0
     name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     steps:
