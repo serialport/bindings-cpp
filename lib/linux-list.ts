@@ -4,7 +4,7 @@ import { ReadlineParser } from '@serialport/parser-readline'
 
 // get only serial port names
 function checkPathOfDevice(path: string) {
-  return /(tty(S|WCH|ACM|USB|AMA|MFD|O|XRUSB)|rfcomm)/.test(path) && path
+  return /(tty(S|WCH|ACM|USB|AMA|MFD|O|XRUSB)|rfcomm|usb\/lp)/.test(path) && path
 }
 
 function propName(name: string) {
