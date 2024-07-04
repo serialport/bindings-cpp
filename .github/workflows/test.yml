@@ -23,11 +23,11 @@ jobs:
         node-version: [16.x, 18.x, 20.x]
         config:
           # arch isn't used and we have no way to use it currently
-          - { os: macos-latest, arch: x64 }
+          - { os: macos-11, arch: x64 }
           - { os: ubuntu-latest, arch: x64 }
           - { os: windows-2019, arch: x64 }
     steps:
-    - if: matrix.config.os == 'macos-latest'
+    - if: matrix.config.os == 'macos-11'
       run: sudo -H pip install setuptools
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
