@@ -27,6 +27,8 @@ jobs:
           - { os: ubuntu-latest, arch: x64 }
           - { os: windows-2019, arch: x64 }
     steps:
+    - if: matrix.config.os == 'macos-latest'
+      run: sudo -H pip install setuptools
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
       with:
