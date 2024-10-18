@@ -20,9 +20,9 @@
   "dependencies": {
     "@serialport/bindings-interface": "1.2.2",
     "@serialport/parser-readline": "11.0.0",
-    "debug": "4.3.4",
-    "node-addon-api": "7.0.0",
-    "node-gyp-build": "4.6.0"
+    "debug": "4.3.7",
+    "node-addon-api": "8.2.1",
+    "node-gyp-build": "4.8.2"
   },
   "devDependencies": {
     "@semantic-release/exec": "6.0.3",
@@ -37,22 +37,22 @@
     "cc": "3.0.1",
     "chai": "4.3.10",
     "chai-subset": "1.6.0",
-    "esbuild": "0.19.5",
-    "esbuild-register": "3.5.0",
+    "esbuild": "0.24.0",
+    "esbuild-register": "3.6.0",
     "eslint": "8.52.0",
     "mocha": "10.2.0",
-    "node-abi": "3.45.0",
-    "node-gyp": "9.4.0",
-    "nyc": "15.1.0",
-    "prebuildify": "5.0.1",
-    "prebuildify-cross": "5.0.0",
+    "node-abi": "3.71.0",
+    "node-gyp": "10.2.0",
+    "nyc": "17.1.0",
+    "prebuildify": "6.0.1",
+    "prebuildify-cross": "5.1.1",
     "semantic-release": "21.1.0",
     "shx": "0.3.4",
     "sinon": "17.0.1",
     "typescript": "5.1.6"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig-build.json",
