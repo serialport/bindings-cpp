@@ -13,7 +13,7 @@ jobs:
       matrix:
         include:
           - name: darwin
-            os: macos-11
+            os: macos-latest
             node: x64
             command: prebuildify
             args: --arch x64+arm64
@@ -41,9 +41,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - if: matrix.node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 20
           architecture: ${{ matrix.node }}
       - uses: actions/checkout@v3
       - run: npm ci
@@ -60,14 +60,14 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v3
         with:
           name: build-artifacts
           path: prebuilds
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 20
       - run: npm ci
       - run: npm run build
       - run: npm run semantic-release
