@@ -13,50 +13,46 @@ jobs:
       matrix:
         include:
           - name: darwin
-            os: macos-11
+            os: macos-latest
             node: x64
             command: prebuildify
-            args: --arch x64+arm64 --target 14.0.0
+            args: --arch x64+arm64
           - name: win32-x86
             os: windows-2019
             node: x86
             command: prebuildify
-            args: --target 14.0.0
           - name: win32-x64
             os: windows-2019
             node: x64
             command: prebuildify
-            args: --target 14.0.0
           - name: win32-arm64
             os: windows-2019
             command: prebuildify
-            args: --arch arm64 --target 20.11.1
+            args: --arch arm64
           - name: linux-x64
             os: ubuntu-latest
             command: prebuildify-cross
-            args: -i centos7-devtoolset7 -i alpine --target 14.0.0
+            args: -i centos7-devtoolset7 -i alpine
           - name: linux-arm
             os: ubuntu-latest
             command: prebuildify-cross
-            args: -i linux-arm64-lts -i linux-armv7 -i linux-armv6 --target 14.0.0
+            args: -i linux-arm64-lts -i linux-armv7 -i linux-armv7l-musl -i linux-armv6
           - name: android-arm
             os: ubuntu-latest
             command: prebuildify-cross
-            args: -i android-arm64 -i android-armv7 --target 14.0.0
+            args: -i android-arm64 -i android-armv7
     name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     steps:
-      - if: matrix.os == 'macos-11'
-        run: sudo -H pip install setuptools
       - if: matrix.node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 20
           architecture: ${{ matrix.node }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: npm ci
       - run: npm run ${{ matrix.command }} -- ${{ matrix.args }}
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: prebuilds/
@@ -68,14 +64,14 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
           name: build-artifacts
           path: prebuilds
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 20
       - run: npm ci
       - run: npm run build
       - run: npm run semantic-release

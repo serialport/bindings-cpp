@@ -9,7 +9,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-node@v3
       with:
         node-version: 18.x
@@ -20,22 +20,20 @@ jobs:
     runs-on: ${{ matrix.config.os }}
     strategy:
       matrix:
-        node-version: [16.x, 18.x, 20.x]
+        node-version: [18.x, 20.x, 22.x]
         config:
           # arch isn't used and we have no way to use it currently
           - { os: macos-latest, arch: x64 }
           - { os: ubuntu-latest, arch: x64 }
           - { os: windows-2019, arch: x64 }
     steps:
-    - if: matrix.config.os == 'macos-latest'
-      run: sudo -H pip install setuptools
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm ci
     - run: npm run rebuild
     - run: npm test
-    - uses: codecov/codecov-action@v3
+    - uses: codecov/codecov-action@v4
       with:
         directory: ./coverage/
