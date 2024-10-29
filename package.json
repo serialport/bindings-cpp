@@ -40,7 +40,7 @@
     "esbuild": "0.24.0",
     "esbuild-register": "3.6.0",
     "eslint": "8.57.1",
-    "mocha": "10.7.3",
+    "mocha": "10.8.1",
     "node-abi": "3.71.0",
     "node-gyp": "10.2.0",
     "nyc": "17.1.0",
