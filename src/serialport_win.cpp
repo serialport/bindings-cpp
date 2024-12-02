@@ -823,14 +823,14 @@ void ListBaton::Execute() {
       }
     }
 
-    std::wstring instanceIdentifier = deviceInstanceIdentifier(deviceInfoData.DevInst);
-    std::wstring vendorId = deviceVendorIdentifier(instanceIdentifier);
-    std::wstring productId = deviceProductIdentifier(instanceIdentifier);
-    std::wstring serialNumber = deviceSerialNumber(instanceIdentifier , deviceInfoData.DevInst);
-    std::wstring manufacturer = deviceManufacturer(hDevInfo, &deviceInfoData);
-    std::wstring locationId = deviceLocationInformation(hDevInfo, &deviceInfoData);
-    std::wstring friendlyName = devicefriendlyName(hDevInfo, &deviceInfoData);
-    std::wstring name = devicePortName(hDevInfo, &deviceInfoData);
+    const std::wstring instanceIdentifier = deviceInstanceIdentifier(deviceInfoData.DevInst);
+    const std::wstring vendorId = deviceVendorIdentifier(instanceIdentifier);
+    const std::wstring productId = deviceProductIdentifier(instanceIdentifier);
+    const std::wstring serialNumber = deviceSerialNumber(instanceIdentifier , deviceInfoData.DevInst);
+    const std::wstring manufacturer = deviceManufacturer(hDevInfo, &deviceInfoData);
+    const std::wstring locationId = deviceLocationInformation(hDevInfo, &deviceInfoData);
+    const std::wstring friendlyName = devicefriendlyName(hDevInfo, &deviceInfoData);
+    const std::wstring name = devicePortName(hDevInfo, &deviceInfoData);
 
     if (!name.empty()) {
       ListResultItem* resultItem = new ListResultItem();
