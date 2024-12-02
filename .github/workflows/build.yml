@@ -28,7 +28,7 @@ jobs:
           - name: linux-x64
             os: ubuntu-latest
             command: prebuildify-cross
-            args: -i centos7-devtoolset7 -i alpine
+            args: -i almalinux-devtoolset11 -i alpine
           - name: linux-arm
             os: ubuntu-latest
             command: prebuildify-cross
@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: npm ci
       - run: npm run ${{ matrix.command }} -- ${{ matrix.args }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v3
         with:
           name: build-artifacts
           path: prebuilds/
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v3
         with:
           name: build-artifacts
           path: prebuilds
