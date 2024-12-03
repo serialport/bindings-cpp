@@ -25,6 +25,10 @@ jobs:
             os: windows-2019
             node: x64
             command: prebuildify
+          - name: win32-arm64
+            os: windows-2019
+            command: prebuildify
+            args: --arch arm64
           - name: linux-x64
             os: ubuntu-latest
             command: prebuildify-cross
