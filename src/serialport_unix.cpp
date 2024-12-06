@@ -114,14 +114,14 @@ void ConnectionOptionsBaton::Execute() {
   // If there is a custom baud rate on linux you can do the following trick with B38400
   #if defined(__linux__) && defined(ASYNC_SPD_CUST)
     if (baudRate == -1) {
-      int err = linuxSetCustomBaudRate(fd, baudRate);
+      int err = linuxSetCustomBaudRate(fd, this->baudRate);
 
       if (err == -1) {
         snprintf(errorString, sizeof(errorString), "Error: %s || while retrieving termios2 info", strerror(errno));
         this->SetError(errorString);
         return;
       } else if (err == -2) {
-        snprintf(errorString, sizeof(errorString), "Error: %s || while setting custom baud rate of %d", strerror(errno), baudRate);
+        snprintf(errorString, sizeof(errorString), "Error: %s || while setting custom baud rate of %d", strerror(errno), this->baudRate);
         this->SetError(errorString);
         return;
       }
@@ -133,7 +133,7 @@ void ConnectionOptionsBaton::Execute() {
   // On OS X, starting with Tiger, we can set a custom baud rate with ioctl
   #if defined(MAC_OS_X_VERSION_10_4) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4)
     if (-1 == baudRate) {
-      speed_t speed = baudRate;
+      speed_t speed = this->baudRate;
       if (-1 == ioctl(fd, IOSSIOSPEED, &speed)) {
         snprintf(errorString, sizeof(errorString), "Error: %s calling ioctl(.., IOSSIOSPEED, %ld )", strerror(errno), speed);
         this->SetError(errorString);
