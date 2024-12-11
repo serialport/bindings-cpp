@@ -1,24 +1,15 @@
 #include "./serialport.h"
 #include "./serialport_win.h"
 #include <napi.h>
-#include <uv.h>
 #include <list>
 #include <vector>
-#include <string.h>
+#include <string>
 #include <windows.h>
 #include <Setupapi.h>
-#include <initguid.h>
-#include <devpkey.h>
+#include <cfgmgr32.h>
 #include <devguid.h>
 #include <wchar.h>
 #pragma comment(lib, "setupapi.lib")
-
-#define ARRAY_SIZE(arr)     (sizeof(arr)/sizeof(arr[0]))
-
-#define MAX_BUFFER_SIZE 1000
-
-// As per https://msdn.microsoft.com/en-us/library/windows/desktop/ms724872(v=vs.85).aspx
-#define MAX_REGISTRY_KEY_SIZE 255
 
 // Declare type of pointer to CancelIoEx function
 typedef BOOL (WINAPI *CancelIoExType)(HANDLE hFile, LPOVERLAPPED lpOverlapped);
@@ -632,13 +623,6 @@ void CloseBaton::Execute() {
   }
 }
 
-wchar_t *copySubstring(wchar_t *someString, int n) {
-  wchar_t *new_ = reinterpret_cast<wchar_t*>(malloc(sizeof(wchar_t)*n + 1));
-  wcsncpy_s(new_, n + 1, someString, n);
-  new_[n] = '\0';
-  return new_;
-}
-
 Napi::Value List(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
   // callback
@@ -655,185 +639,182 @@ Napi::Value List(const Napi::CallbackInfo& info) {
   return env.Undefined();
 }
 
-// It's possible that the s/n is a construct and not the s/n of the parent USB
-// composite device. This performs some convoluted registry lookups to fetch the USB s/n.
-void getSerialNumber(const wchar_t *vid,
-                     const wchar_t *pid,
-                     const HDEVINFO hDevInfo,
-                     SP_DEVINFO_DATA deviceInfoData,
-                     const unsigned int maxSerialNumberLength,
-                     wchar_t* serialNumber) {
-  _snwprintf_s(serialNumber, maxSerialNumberLength, _TRUNCATE, L"");
-  if (vid == NULL || pid == NULL) {
-    return;
-  }
+std::wstring devicePortName(HDEVINFO deviceInfoSet, PSP_DEVINFO_DATA deviceInfoData) {
+    const HKEY key = SetupDiOpenDevRegKey(deviceInfoSet, deviceInfoData, DICS_FLAG_GLOBAL,
+                                          0, DIREG_DEV, KEY_READ);
+    if (key == INVALID_HANDLE_VALUE)
+        return L"";
 
-  DWORD dwSize;
-  WCHAR szWUuidBuffer[MAX_BUFFER_SIZE];
-  WCHAR wantedUuid[MAX_BUFFER_SIZE];
+    static const wchar_t * const keyTokens[] = {
+        L"PortName\0",
+        L"PortNumber\0"
+    };
 
-
-  // Fetch the "Container ID" for this device node. In USB context, this "Container
-  // ID" refers to the composite USB device, i.e. the USB device as a whole, not
-  // just one of its interfaces with a serial port driver attached.
-
-  // From https://stackoverflow.com/questions/3438366/setupdigetdeviceproperty-usage-example:
-  // Because this is not compiled with UNICODE defined, the call to SetupDiGetDevicePropertyW
-  // has to be setup manually.
-  DEVPROPTYPE ulPropertyType;
-  typedef BOOL (WINAPI *FN_SetupDiGetDevicePropertyW)(
-    __in       HDEVINFO DeviceInfoSet,
-    __in       PSP_DEVINFO_DATA DeviceInfoData,
-    __in       const DEVPROPKEY *PropertyKey,
-    __out      DEVPROPTYPE *PropertyType,
-    __out_opt  PBYTE PropertyBuffer,
-    __in       DWORD PropertyBufferSize,
-    __out_opt  PDWORD RequiredSize,
-    __in       DWORD Flags);
-
-  FN_SetupDiGetDevicePropertyW fn_SetupDiGetDevicePropertyW = (FN_SetupDiGetDevicePropertyW)
-        GetProcAddress(GetModuleHandle(TEXT("Setupapi.dll")), "SetupDiGetDevicePropertyW");
-
-  if (fn_SetupDiGetDevicePropertyW (
-        hDevInfo,
-        &deviceInfoData,
-        &DEVPKEY_Device_ContainerId,
-        &ulPropertyType,
-        reinterpret_cast<BYTE*>(szWUuidBuffer),
-        sizeof(szWUuidBuffer),
-        &dwSize,
-        0)) {
-    szWUuidBuffer[dwSize] = '\0';
-
-    // Given the UUID bytes, build up a (widechar) string from it. There's some mangling
-    // going on.
-    StringFromGUID2((REFGUID)szWUuidBuffer, wantedUuid, ARRAY_SIZE(wantedUuid));
-  } else {
-    // Container UUID could not be fetched, return empty serial number.
-    return;
-  }
-
-  // NOTE: Devices might have a containerUuid like {00000000-0000-0000-FFFF-FFFFFFFFFFFF}
-  // This means they're non-removable, and are not handled (yet).
-  // Maybe they should inherit the s/n from somewhere else.
-
-  // Iterate through all the USB devices with the given VendorID/ProductID
-
-  HKEY vendorProductHKey;
-  DWORD retCode;
-  wchar_t hkeyPath[MAX_BUFFER_SIZE];
-
-  _snwprintf_s(hkeyPath, MAX_BUFFER_SIZE, _TRUNCATE, L"SYSTEM\\CurrentControlSet\\Enum\\USB\\VID_%s&PID_%s", vid, pid);
-
-  retCode = RegOpenKeyExW(
-    HKEY_LOCAL_MACHINE,
-    hkeyPath,
-    0,
-    KEY_READ,
-    &vendorProductHKey);
-
-  if (retCode == ERROR_SUCCESS) {
-    DWORD    serialNumbersCount = 0;       // number of subkeys
-
-    // Fetch how many subkeys there are for this VendorID/ProductID pair.
-    // That's the number of devices for this VendorID/ProductID known to this machine.
-
-    retCode = RegQueryInfoKey(
-        vendorProductHKey,    // hkey handle
-        NULL,      // buffer for class name
-        NULL,      // size of class string
-        NULL,      // reserved
-        &serialNumbersCount,  // number of subkeys
-        NULL,      // longest subkey size
-        NULL,      // longest class string
-        NULL,      // number of values for this key
-        NULL,      // longest value name
-        NULL,      // longest value data
-        NULL,      // security descriptor
-        NULL);     // last write time
-
-    if (retCode == ERROR_SUCCESS && serialNumbersCount > 0) {
-        for (unsigned int i=0; i < serialNumbersCount; i++) {
-          // Each of the subkeys here is the serial number of a USB device with the
-          // given VendorId/ProductId. Now fetch the string for the S/N.
-          DWORD serialNumberLength = maxSerialNumberLength;
-          retCode = RegEnumKeyExW(vendorProductHKey,
-                                  i,
-                                  reinterpret_cast<LPWSTR>(serialNumber),
-                                  &serialNumberLength,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  NULL);
-
-          if (retCode == ERROR_SUCCESS) {
-            // Lookup info for VID_(vendorId)&PID_(productId)\(serialnumber)
-
-            _snwprintf_s(hkeyPath, MAX_BUFFER_SIZE, _TRUNCATE,
-                        L"SYSTEM\\CurrentControlSet\\Enum\\USB\\VID_%ls&PID_%ls\\%ls",
-                        vid, pid, serialNumber);
-
-            HKEY deviceHKey;
-
-            if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, hkeyPath, 0, KEY_READ, &deviceHKey) == ERROR_SUCCESS) {
-                wchar_t readUuid[MAX_BUFFER_SIZE];
-                DWORD readSize = sizeof(readUuid);
-
-                // Query VID_(vendorId)&PID_(productId)\(serialnumber)\ContainerID
-                retCode = RegQueryValueExW(deviceHKey, L"ContainerID", NULL, NULL, (LPBYTE)&readUuid, &readSize);
-                if (retCode == ERROR_SUCCESS) {
-                    readUuid[readSize] = '\0';
-                    if (wcscmp(wantedUuid, readUuid) == 0) {
-                        // The ContainerID UUIDs match, return now that serialNumber has
-                        // the right value.
-                        RegCloseKey(deviceHKey);
-                        RegCloseKey(vendorProductHKey);
-                        return;
-                    }
-                }
+    std::wstring portName;
+    for (auto keyToken : keyTokens) {
+        DWORD dataType = 0;
+        std::wstring outputBuffer(MAX_PATH + 1, 0);
+        DWORD bytesRequired = MAX_PATH;
+        for (;;) {
+            const LONG ret = RegQueryValueExW(key, keyToken, nullptr, &dataType,
+                                               reinterpret_cast<PBYTE>(&outputBuffer[0]), &bytesRequired);
+            if (ret == ERROR_MORE_DATA) {
+                outputBuffer.resize(bytesRequired / sizeof(wchar_t) + 2, 0);
+                continue;
+            } else if (ret == ERROR_SUCCESS) {
+                if (dataType == REG_SZ)
+                    portName = outputBuffer;
+                else if (dataType == REG_DWORD)
+                    portName = L"COM" + std::to_wstring(*(PDWORD(&outputBuffer[0])));
             }
-            RegCloseKey(deviceHKey);
-          }
-       }
+            break;
+        }
+
+        if (!portName.empty())
+            break;
+    }
+    RegCloseKey(key);
+    return portName;
+}
+
+std::wstring deviceRegistryProperty(HDEVINFO deviceInfoSet,
+                                    PSP_DEVINFO_DATA deviceInfoData,
+                                    DWORD property) {
+    DWORD dataType = 0;
+    std::wstring output(MAX_PATH + 1, 0);
+    DWORD bytesRequired = MAX_PATH;
+    for (;;) {
+        if (SetupDiGetDeviceRegistryPropertyW(deviceInfoSet, deviceInfoData, property, &dataType,
+                                               reinterpret_cast<PBYTE>(&output[0]),
+                                               bytesRequired, &bytesRequired)) {
+            break;
+        }
+
+        if (GetLastError() != ERROR_INSUFFICIENT_BUFFER
+                || (dataType != REG_SZ && dataType != REG_EXPAND_SZ)) {
+            return L"";
+        }
+        output.resize(bytesRequired / sizeof(wchar_t) + 2, 0);
+    }
+    return output;
+}
+
+std::wstring deviceLocationInformation(HDEVINFO deviceInfoSet, PSP_DEVINFO_DATA deviceInfoData) {
+    return deviceRegistryProperty(deviceInfoSet, deviceInfoData, SPDRP_LOCATION_INFORMATION);
+}
+
+std::wstring deviceManufacturer(HDEVINFO deviceInfoSet, PSP_DEVINFO_DATA deviceInfoData) {
+    return deviceRegistryProperty(deviceInfoSet, deviceInfoData, SPDRP_MFG);
+}
+
+std::wstring devicefriendlyName(HDEVINFO deviceInfoSet, PSP_DEVINFO_DATA deviceInfoData) {
+    return deviceRegistryProperty(deviceInfoSet, deviceInfoData, SPDRP_FRIENDLYNAME);
+}
+
+std::wstring parseDeviceIdentifier(const std::wstring &instanceIdentifier,
+                                  const std::wstring &identifierPrefix,
+                                  int identifierSize) {
+    const int index = instanceIdentifier.find(identifierPrefix);
+    if (index == std::wstring::npos)
+        return L"";
+    return instanceIdentifier.substr(index + identifierPrefix.size(), identifierSize);
+}
+
+std::wstring deviceVendorIdentifier(const std::wstring &instanceIdentifier) {
+    static const int vendorIdentifierSize = 4;
+    std::wstring result = parseDeviceIdentifier(
+                instanceIdentifier, L"VID_", vendorIdentifierSize);
+    if (result.empty())
+        result = parseDeviceIdentifier(
+                    instanceIdentifier, L"VEN_", vendorIdentifierSize);
+    return result;
+}
+
+std::wstring deviceProductIdentifier(const std::wstring &instanceIdentifier) {
+    static const int productIdentifierSize = 4;
+    std::wstring result = parseDeviceIdentifier(
+                instanceIdentifier, L"PID_", productIdentifierSize);
+    if (result.empty())
+        result = parseDeviceIdentifier(
+                    instanceIdentifier, L"DEV_", productIdentifierSize);
+    return result;
+}
+
+std::wstring deviceInstanceIdentifier(DEVINST deviceInstanceNumber) {
+    std::wstring wstr(MAX_DEVICE_ID_LEN + 1, 0);
+    if (CM_Get_Device_IDW(
+                deviceInstanceNumber,
+                &wstr[0],
+                MAX_DEVICE_ID_LEN,
+                0) != CR_SUCCESS) {
+        return L"";
+    }
+    return wstr;
+}
+
+auto startsWith = [](const std::wstring& str, const std::wstring& prefix) {
+    return str.compare(0, prefix.size(), prefix) == 0;
+};
+
+std::wstring parseDeviceSerialNumber(const std::wstring &instanceIdentifier) {
+    int firstbound = instanceIdentifier.rfind(L'\\');
+    int lastbound = instanceIdentifier.find(L'_', firstbound);
+    if (startsWith(instanceIdentifier, L"USB\\")) {
+        if (lastbound != instanceIdentifier.size() - 3)
+            lastbound = instanceIdentifier.size();
+        int ampersand = instanceIdentifier.find(L'&', firstbound);
+        if (ampersand != std::wstring::npos && ampersand < lastbound)
+            return L"";
+    } else if (startsWith(instanceIdentifier, L"FTDIBUS\\")) {
+        firstbound = instanceIdentifier.rfind(L'+');
+        lastbound = instanceIdentifier.find(L'\\', firstbound);
+        if (lastbound == std::wstring::npos)
+            return L"";
+    } else {
+        return L"";
     }
 
-    /* In case we did not obtain the path, for whatever reason, we close the key and return an empty string. */
-    RegCloseKey(vendorProductHKey);
-  }
+    return instanceIdentifier.substr(firstbound + 1, lastbound - firstbound - 1);
+}
 
-  _snwprintf_s(serialNumber, maxSerialNumberLength, _TRUNCATE, L"");
-  return;
+DEVINST parentDeviceInstanceNumber(DEVINST childDeviceInstanceNumber) {
+    ULONG nodeStatus = 0;
+    ULONG problemNumber = 0;
+    if (CM_Get_DevNode_Status(&nodeStatus, &problemNumber,
+                                childDeviceInstanceNumber, 0) != CR_SUCCESS) {
+        return 0;
+    }
+    DEVINST parentInstanceNumber = 0;
+    if (CM_Get_Parent(&parentInstanceNumber, childDeviceInstanceNumber, 0) != CR_SUCCESS)
+        return 0;
+    return parentInstanceNumber;
+}
+
+std::wstring deviceSerialNumber(std::wstring instanceIdentifier,
+                                DEVINST deviceInstanceNumber) {
+    for (;;) {
+        const std::wstring result = parseDeviceSerialNumber(instanceIdentifier);
+        if (!result.empty())
+            return result;
+        deviceInstanceNumber = parentDeviceInstanceNumber(deviceInstanceNumber);
+        if (deviceInstanceNumber == 0)
+            break;
+        instanceIdentifier = deviceInstanceIdentifier(deviceInstanceNumber);
+        if (instanceIdentifier.empty())
+            break;
+    }
+
+    return L"";
 }
 
 void ListBaton::Execute() {
 
   GUID *guidDev = (GUID*)& GUID_DEVCLASS_PORTS;  // NOLINT
   HDEVINFO hDevInfo = SetupDiGetClassDevs(guidDev, NULL, NULL, DIGCF_PRESENT | DIGCF_PROFILE);
-  SP_DEVINFO_DATA deviceInfoData;
 
   int memberIndex = 0;
-  DWORD dwSize, dwPropertyRegDataType;
-  wchar_t szBuffer[MAX_BUFFER_SIZE];
-  wchar_t *pnpId;
-  wchar_t *vendorId;
-  wchar_t *productId;
-  wchar_t *name;
-  wchar_t *manufacturer;
-  wchar_t *locationId;
-  wchar_t *friendlyName;
-  wchar_t serialNumber[MAX_REGISTRY_KEY_SIZE];
-  bool isCom;
   while (true) {
-    isCom = false;
-    pnpId = NULL;
-    vendorId = NULL;
-    productId = NULL;
-    name = NULL;
-    manufacturer = NULL;
-    locationId = NULL;
-    friendlyName = NULL;
-
-    ZeroMemory(&deviceInfoData, sizeof(SP_DEVINFO_DATA));
+    SP_DEVINFO_DATA deviceInfoData = {};
     deviceInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
 
     if (SetupDiEnumDeviceInfo(hDevInfo, memberIndex, &deviceInfoData) == FALSE) {
@@ -842,77 +823,27 @@ void ListBaton::Execute() {
       }
     }
 
-    dwSize = sizeof(szBuffer);
-    SetupDiGetDeviceInstanceIdW(hDevInfo, &deviceInfoData, reinterpret_cast<PWSTR>(szBuffer), dwSize, &dwSize);
-    szBuffer[dwSize] = '\0';
-    pnpId = wcsdup(szBuffer);
+    const std::wstring instanceIdentifier = deviceInstanceIdentifier(deviceInfoData.DevInst);
+    const std::wstring vendorId = deviceVendorIdentifier(instanceIdentifier);
+    const std::wstring productId = deviceProductIdentifier(instanceIdentifier);
+    const std::wstring serialNumber = deviceSerialNumber(instanceIdentifier , deviceInfoData.DevInst);
+    const std::wstring manufacturer = deviceManufacturer(hDevInfo, &deviceInfoData);
+    const std::wstring locationId = deviceLocationInformation(hDevInfo, &deviceInfoData);
+    const std::wstring friendlyName = devicefriendlyName(hDevInfo, &deviceInfoData);
+    const std::wstring name = devicePortName(hDevInfo, &deviceInfoData);
 
-    vendorId = wcsstr(szBuffer, L"VID_");
-    if (vendorId) {
-      vendorId += 4;
-      vendorId = copySubstring(vendorId, 4);
-    }
-    productId = wcsstr(szBuffer, L"PID_");
-    if (productId) {
-      productId += 4;
-      productId = copySubstring(productId, 4);
-    }
-
-    getSerialNumber(vendorId, productId, hDevInfo, deviceInfoData, MAX_REGISTRY_KEY_SIZE, serialNumber);
-
-    if (SetupDiGetDeviceRegistryPropertyW(hDevInfo, &deviceInfoData,
-                                         SPDRP_LOCATION_INFORMATION, &dwPropertyRegDataType,
-                                         reinterpret_cast<PBYTE>(szBuffer), sizeof(szBuffer), &dwSize)) {
-      locationId = wcsdup(szBuffer);
-    }
-    if (SetupDiGetDeviceRegistryPropertyW(hDevInfo, &deviceInfoData,
-                                         SPDRP_FRIENDLYNAME, &dwPropertyRegDataType,
-                                         reinterpret_cast<PBYTE>(szBuffer), sizeof(szBuffer), &dwSize)) {
-      friendlyName = wcsdup(szBuffer);
-    }
-    if (SetupDiGetDeviceRegistryPropertyW(hDevInfo, &deviceInfoData,
-                                         SPDRP_MFG, &dwPropertyRegDataType,
-                                         reinterpret_cast<PBYTE>(szBuffer), sizeof(szBuffer), &dwSize)) {
-      manufacturer = wcsdup(szBuffer);
-    }
-
-    HKEY hkey = SetupDiOpenDevRegKey(hDevInfo, &deviceInfoData, DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ);
-    if (hkey != INVALID_HANDLE_VALUE) {
-      dwSize = sizeof(szBuffer);
-      if (RegQueryValueExW(hkey, L"PortName", NULL, NULL, (LPBYTE)&szBuffer, &dwSize) == ERROR_SUCCESS) {
-        name = wcsdup(szBuffer);
-        szBuffer[dwSize] = '\0';
-        isCom = wcsstr(szBuffer, L"COM") != NULL;
-      }
-    }
-    if (isCom) {
+    if (!name.empty()) {
       ListResultItem* resultItem = new ListResultItem();
       resultItem->path = name;
       resultItem->manufacturer = manufacturer;
-      resultItem->pnpId = pnpId;
-      if (vendorId) {
-        resultItem->vendorId = vendorId;
-      }
-      if (productId) {
-        resultItem->productId = productId;
-      }
+      resultItem->pnpId = instanceIdentifier;
+      resultItem->vendorId = vendorId;
+      resultItem->productId = productId;
       resultItem->serialNumber = serialNumber;
-      if (locationId) {
-        resultItem->locationId = locationId;
-      }
-      if (friendlyName) {
-        resultItem->friendlyName = friendlyName;
-      }
+      resultItem->locationId = locationId;
+      resultItem->friendlyName = friendlyName;
       results.push_back(resultItem);
     }
-    free(pnpId);
-    free(vendorId);
-    free(productId);
-    free(locationId);
-    free(manufacturer);
-    free(name);
-
-    RegCloseKey(hkey);
     memberIndex++;
   }
   if (hDevInfo) {
