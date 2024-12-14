@@ -28,6 +28,12 @@ jobs:
             node: x64
             command: prebuildify
 
+          - name: win32-arm64
+            os: windows-latest
+            node: x64
+            command: prebuildify
+            args: --arch arm64
+
           - name: linux-x64
             os: ubuntu-latest
             node: x64
