@@ -44,7 +44,8 @@ jobs:
             os: ubuntu-latest
             node: x64
             command: prebuildify-cross
-            args: -i alpine --tag-libc
+            # already has --tag-libc --libc musl
+            args: -i alpine
 
           - name: linux-arm64
             os: ubuntu-latest
