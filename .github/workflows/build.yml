@@ -38,7 +38,7 @@ jobs:
             os: ubuntu-latest
             node: x64
             command: prebuildify-cross
-            args: -i almalinux-devtoolset11
+            args: -i almalinux-devtoolset11 --tag-libc --libc glibc
 
           - name: linux-x64-musl
             os: ubuntu-latest
@@ -51,13 +51,7 @@ jobs:
             os: ubuntu-latest
             node: x64
             command: prebuildify-cross
-            args: -i linux-arm64
-
-          - name: linux-arm
-            os: ubuntu-latest
-            node: x64
-            command: prebuildify-cross
-            args: -i linux-armv7 -i linux-armv6
+            args: -i linux-arm64 --tag-libc --libc glibc
 
           - name: linux-arm64-musl
             os: ubuntu-latest
@@ -65,11 +59,23 @@ jobs:
             command: prebuildify-cross
             args: -i linux-arm64-musl --tag-libc --libc musl
 
+          - name: linux-arm
+            os: ubuntu-latest
+            node: x64
+            command: prebuildify-cross
+            args: -i linux-armv7 -i linux-armv6 --tag-libc --libc glibc
+
           - name: linux-arm-musl
             os: ubuntu-latest
             node: x64
             command: prebuildify-cross
             args: -i linux-armv7l-musl --tag-libc --libc musl
+
+          - name: android-arm
+            os: ubuntu-latest
+            node: x64
+            command: prebuildify-cross
+            args: -i android-armv7
 
           - name: android-arm64
             os: ubuntu-latest
@@ -77,11 +83,6 @@ jobs:
             command: prebuildify-cross
             args: -i android-arm64
 
-          - name: android-arm
-            os: ubuntu-latest
-            node: x64
-            command: prebuildify-cross
-            args: -i android-armv7
     name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     steps:
