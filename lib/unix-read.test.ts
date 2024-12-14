@@ -99,13 +99,13 @@ describe('unixRead', () => {
       (mock as any).isOpen = false
       makeFsReadError('EAGAIN')()
     }
-    const err: BindingsError = await shouldReject(unixRead({ binding: mock, buffer: readBuffer, offset: 0, length: 8, fsReadAsync }))
+    const err = await shouldReject(unixRead({ binding: mock, buffer: readBuffer, offset: 0, length: 8, fsReadAsync })) as BindingsError
     assert.isTrue(err.canceled)
   })
   it('rejects a disconnected error when fsread errors a disconnect error', async () => {
     const readBuffer = Buffer.alloc(8, 0)
     const fsReadAsync = makeFsReadError('EBADF')
-    const err = await shouldReject(unixRead({ binding: mock, buffer: readBuffer, offset: 0, length: 8, fsReadAsync }))
+    const err = await shouldReject(unixRead({ binding: mock, buffer: readBuffer, offset: 0, length: 8, fsReadAsync })) as Error & {disconnect: boolean}
     assert.isTrue(err.disconnect)
   })
 })
