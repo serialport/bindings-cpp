@@ -252,7 +252,7 @@ function testBinding(bindingName: string, Binding: BindingInterface, testPort?: 
           const port = await Binding.open(options)
           const readError = shouldReject(port.read(Buffer.alloc(100), 0, 100))
           await port.close()
-          const err: BindingsError = await readError
+          const err = await readError as BindingsError
           assert.isTrue(err.canceled)
         })
       })

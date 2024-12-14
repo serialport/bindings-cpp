@@ -140,7 +140,7 @@ describe('unixWrite', () => {
   it('rejects a disconnect error when fswrite errors a disconnect error', async () => {
     const writeBuffer = Buffer.alloc(8, 0)
     const fsWriteAsync = makeFsWriteError('EBADF')
-    const err = await shouldReject(unixWrite({ binding: mock, buffer: writeBuffer, fsWriteAsync }))
+    const err = await shouldReject(unixWrite({ binding: mock, buffer: writeBuffer, fsWriteAsync })) as Error & {disconnect: boolean}
     assert.isTrue(err.disconnect)
   })
 })
