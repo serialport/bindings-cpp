@@ -32,7 +32,7 @@ jobs:
             os: windows-latest
             node: x64
             command: prebuildify
-            args: --arch arm64
+            args: --arch arm64 --tag-armv 8
 
           - name: linux-x64
             os: ubuntu-latest
