@@ -22,7 +22,7 @@
     "@serialport/parser-readline": "12.0.0",
     "debug": "4.3.7",
     "node-addon-api": "8.2.1",
-    "node-gyp-build": "4.8.2"
+    "node-gyp-build": "4.8.4"
   },
   "devDependencies": {
     "@semantic-release/exec": "6.0.3",
