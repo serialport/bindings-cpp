@@ -455,6 +455,7 @@ void __stdcall ReadIOCompletion(DWORD errorCode, DWORD bytesTransferred, OVERLAP
   }
   if (!baton->bytesToRead) {
     baton->complete = true;
+    CloseHandle(ov->hEvent);
     return;
   }
 
@@ -467,6 +468,7 @@ void __stdcall ReadIOCompletion(DWORD errorCode, DWORD bytesTransferred, OVERLAP
     lastError = GetLastError();
     ErrorCodeToString("Setting COM timeout (SetCommTimeouts)", lastError, baton->errorString);
     baton->complete = true;
+    // CloseHandle(ov->hEvent); // wondering if we need to close the handle here
     return;
   }
 
@@ -494,11 +496,11 @@ void __stdcall ReadIOCompletion(DWORD errorCode, DWORD bytesTransferred, OVERLAP
       return;
     }
   }
-  CloseHandle(ov->hEvent);
 
   baton->bytesToRead -= bytesTransferred;
   baton->bytesRead += bytesTransferred;
   baton->complete = true;
+  CloseHandle(ov->hEvent);
 }
 
 DWORD __stdcall ReadThread(LPVOID param) {
