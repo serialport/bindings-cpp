@@ -453,6 +453,10 @@ void __stdcall ReadIOCompletion(DWORD errorCode, DWORD bytesTransferred, OVERLAP
     baton->bytesRead += bytesTransferred;
     baton->offset += bytesTransferred;
   }
+  if (!baton->bytesToRead) {
+    baton->complete = true;
+    return;
+  }
 
   // ReadFileEx and GetOverlappedResult retrieved only 1 byte. Read any additional data in the input
   // buffer. Set the timeout to MAXDWORD in order to disable timeouts, so the read operation will
