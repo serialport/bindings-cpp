@@ -1,10 +1,9 @@
 import debug from 'debug'
 import { EventEmitter } from 'events'
-import { join } from 'path'
-import nodeGypBuild from 'node-gyp-build'
 import { BindingsError } from './errors'
+import { binding } from './serialport-bindings'
 
-const { Poller: PollerBindings } = nodeGypBuild(join(__dirname, '../')) as { Poller: PollerClass }
+const { Poller: PollerBindings } = binding as { Poller: PollerClass }
 const logger = debug('serialport/bindings-cpp/poller')
 
 interface PollerClass {
