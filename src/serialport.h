@@ -118,6 +118,12 @@ struct SetBaton : public Napi::AsyncWorker {
   bool brk = false;
   bool lowLatency = false;
 
+  bool rtsToSet = false;
+  bool dtrToSet = false;
+  bool brkToSet = false;
+  bool ctsToSet = false;
+  bool dsrToSet = false;
+
   void Execute() override;
 
   void OnOK() override {
