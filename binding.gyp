@@ -14,7 +14,7 @@
     'conditions': [
       ['OS=="win"',
         {
-          'defines': ['CHECK_NODE_MODULE_VERSION'],
+          'defines': ['CHECK_NODE_MODULE_VERSION', 'NOMINMAX'],
           'sources': [
             'src/serialport_win.cpp'
           ],
