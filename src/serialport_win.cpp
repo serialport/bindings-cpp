@@ -5,7 +5,6 @@
 #include <list>
 #include <vector>
 #include <string.h>
-#include <windows.h>
 #include <Setupapi.h>
 #include <initguid.h>
 #include <devpkey.h>
