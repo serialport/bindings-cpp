@@ -14,6 +14,7 @@ void setIfNotEmpty(Napi::Object item, std::string key, const char *value);
 struct ListResultItem {
   std::string path;
   std::string manufacturer;
+  std::string friendlyName;
   std::string serialNumber;
   std::string pnpId;
   std::string locationId;
@@ -38,6 +39,7 @@ struct ListBaton : public Napi::AsyncWorker {
 
       setIfNotEmpty(item, "path", (*it)->path.c_str());
       setIfNotEmpty(item, "manufacturer", (*it)->manufacturer.c_str());
+      setIfNotEmpty(item, "friendlyName", (*it)->friendlyName.c_str());
       setIfNotEmpty(item, "serialNumber", (*it)->serialNumber.c_str());
       setIfNotEmpty(item, "pnpId", (*it)->pnpId.c_str());
       setIfNotEmpty(item, "locationId", (*it)->locationId.c_str());
@@ -56,6 +58,7 @@ typedef struct SerialDevice {
     char vendorId[MAXPATHLEN];
     char productId[MAXPATHLEN];
     char manufacturer[MAXPATHLEN];
+    char friendlyName[MAXPATHLEN];
     char serialNumber[MAXPATHLEN];
 } stSerialDevice;
 

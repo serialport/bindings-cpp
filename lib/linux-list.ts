@@ -1,6 +1,7 @@
 import { spawn } from 'child_process'
 import { PortInfo } from '@serialport/bindings-interface'
 import { ReadlineParser } from '@serialport/parser-readline'
+import fs from 'fs'
 
 // get only serial port names
 function checkPathOfDevice(path: string) {
@@ -14,6 +15,7 @@ function propName(name: string) {
     ID_SERIAL_SHORT: 'serialNumber',
     ID_VENDOR_ID: 'vendorId',
     ID_MODEL_ID: 'productId',
+    ID_MODEL_ENC: 'friendlyName',
     DEVLINKS: 'pnpId',
     /**
     * Workaround for systemd defect
@@ -38,7 +40,7 @@ function propVal(name: string, val: string) {
     const match = val.match(/\/by-id\/([^\s]+)/)
     return (match?.[1]) || undefined
   }
-  if (name === 'manufacturer') {
+  if (name === 'manufacturer' || name === 'friendlyName') {
     return decodeHexEscape(val)
   }
   if (/^0x/.test(val)) {
@@ -47,10 +49,24 @@ function propVal(name: string, val: string) {
   return val
 }
 
+function getActiveDevices(): Set<string> {
+  try {
+    /* eslint-disable comma-dangle */
+    const validPaths = fs.readdirSync('/dev/serial/by-path').map(file =>
+      fs.realpathSync(`/dev/serial/by-path/${file}`)
+    )
+    /* eslint-enable comma-dangle */
+    return new Set(validPaths)
+  } catch {
+    return new Set()
+  }
+}
+
 export function linuxList(spawnCmd: typeof spawn = spawn) {
   const ports: PortInfo[] = []
   const udevadm = spawnCmd('udevadm', ['info', '-e'])
   const lines = udevadm.stdout.pipe(new ReadlineParser())
+  const validDevices = getActiveDevices()
 
   let skipPort = false
   let port: PortInfo = {
@@ -61,6 +77,7 @@ export function linuxList(spawnCmd: typeof spawn = spawn) {
     locationId: undefined,
     vendorId: undefined,
     productId: undefined,
+    friendlyName: undefined,
   }
 
   lines.on('data', (line: string) => {
@@ -76,6 +93,7 @@ export function linuxList(spawnCmd: typeof spawn = spawn) {
         locationId: undefined,
         vendorId: undefined,
         productId: undefined,
+        friendlyName: undefined,
       }
       skipPort = false
       return
@@ -118,6 +136,9 @@ export function linuxList(spawnCmd: typeof spawn = spawn) {
     })
     udevadm.on('error', reject)
     lines.on('error', reject)
-    lines.on('finish', () => resolve(ports))
+    lines.on('finish', () => {
+      const activePorts = ports.filter(port => validDevices.has(port.path))
+      resolve(activePorts)
+    })
   })
 }

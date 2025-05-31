@@ -162,6 +162,7 @@ static stDeviceListItem* GetSerialDevices() {
         memset(serialDevice->vendorId, 0, sizeof(serialDevice->vendorId));
         memset(serialDevice->productId, 0, sizeof(serialDevice->productId));
         serialDevice->manufacturer[0] = '\0';
+        serialDevice->friendlyName[0] = '\0';
         serialDevice->serialNumber[0] = '\0';
         deviceListItem->next = NULL;
         deviceListItem->length = &length;
@@ -183,6 +184,29 @@ static stDeviceListItem* GetSerialDevices() {
         io_service_t device = GetUsbDevice(modemService);
 
         if (device) {
+
+          CFStringRef friendlyNameAsCFString = (CFStringRef) IORegistryEntryCreateCFProperty(device,
+            CFSTR(kUSBProductString),
+            kCFAllocatorDefault,
+            0);
+
+          if (friendlyNameAsCFString) {
+            Boolean result;
+            char    friendlyName[MAXPATHLEN];
+
+            // Convert from a CFString to a C (NUL-terminated)
+            result = CFStringGetCString(friendlyNameAsCFString,
+                          friendlyName,
+                          sizeof(friendlyName),
+                          kCFStringEncodingUTF8);
+
+            if (result) {
+              snprintf(serialDevice->friendlyName, sizeof(serialDevice->friendlyName), "%s", friendlyName);
+            }
+
+            CFRelease(friendlyNameAsCFString);
+          }
+
           CFStringRef manufacturerAsCFString = (CFStringRef) IORegistryEntryCreateCFProperty(device,
                       CFSTR(kUSBVendorString),
                       kCFAllocatorDefault,
@@ -299,6 +323,9 @@ void ListBaton::Execute() {
       }
       if (*device.manufacturer) {
         resultItem->manufacturer = device.manufacturer;
+      }
+      if (*device.friendlyName) {
+        resultItem->friendlyName = device.friendlyName;
       }
       if (*device.serialNumber) {
         resultItem->serialNumber = device.serialNumber;
