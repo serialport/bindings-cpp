@@ -86,15 +86,10 @@ void OpenBaton::Execute() {
   strncpy(path, "\\\\.\\", 4);
   strncpy(path + 4, path + 20, 10);
 
-  int shareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
-  if (lock) {
-    shareMode = 0;
-  }
-
   HANDLE file = CreateFile(
     path,
     GENERIC_READ | GENERIC_WRITE,
-    shareMode,  // dwShareMode 0 Prevents other processes from opening if they request delete, read, or write access
+    0,  // dwShareMode 0 (exclusive access) is the only supported mode for Communications Resource
     NULL,
     OPEN_EXISTING,
     FILE_FLAG_OVERLAPPED,  // allows for reading and writing at the same time and sets the handle for asynchronous I/O
