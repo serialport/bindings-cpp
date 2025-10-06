@@ -61,7 +61,7 @@ struct ListResultItem {
 };
 
 struct ListBaton : public Napi::AsyncWorker {
-  ListBaton(Napi::Function& callback) : Napi::AsyncWorker(callback, "node-serialport:ListBaton"), 
+  ListBaton(const Napi::Function& callback) : Napi::AsyncWorker(callback, "node-serialport:ListBaton"),
   errorString() {}
   std::list<ListResultItem*> results;
   wchar_t errorString[ERROR_STRING_SIZE];

@@ -1,6 +1,6 @@
 #include <napi.h>
 #include <uv.h>
-#include "./poller.h"
+#include "poller.h"
 
 Poller::Poller (const Napi::CallbackInfo &info) : Napi::ObjectWrap<Poller>(info)
   {

@@ -25,6 +25,7 @@
     "node-gyp-build": "4.8.4"
   },
   "devDependencies": {
+    "@cpplint/cli": "^0.1.0",
     "@semantic-release/exec": "6.0.3",
     "@serialport/binding-mock": "10.2.2",
     "@types/chai": "5.0.1",
@@ -34,7 +35,6 @@
     "@types/node": "22.13.8",
     "@typescript-eslint/eslint-plugin": "6.21.0",
     "@typescript-eslint/parser": "6.21.0",
-    "cc": "3.0.1",
     "chai": "5.2.0",
     "chai-subset": "1.6.0",
     "esbuild": "0.25.5",
@@ -61,7 +61,7 @@
     "prebuildify-cross": "prebuildify-cross --napi --target 20.0.0 --force --strip --verbose",
     "rebuild": "node-gyp rebuild",
     "format": "eslint lib test bin --fix",
-    "lint": "eslint lib test bin && cc --verbose",
+    "lint": "eslint lib test bin && cpplint src/*.cpp src/*.h",
     "test": "nyc --reporter lcov --reporter text mocha",
     "test:arduino": "TEST_PORT=$(./bin/find-arduino.ts) npm test",
     "test:watch": "mocha -w",
@@ -73,17 +73,6 @@
   },
   "license": "MIT",
   "gypfile": true,
-  "cc": {
-    "filter": [
-      "legal/copyright",
-      "build/include"
-    ],
-    "files": [
-      "src/*.cpp",
-      "src/*.h"
-    ],
-    "linelength": "120"
-  },
   "binary": {
     "napi_versions": [
       8

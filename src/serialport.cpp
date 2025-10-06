@@ -1,14 +1,16 @@
-#include "./serialport.h"
+#include "serialport.h"
+#include <cstdio>
+#include <string>
 
 #ifdef __APPLE__
-  #include "./darwin_list.h"
+  #include "darwin_list.h"
 #endif
 
 #ifdef WIN32
   #define strncasecmp strnicmp
-  #include "./serialport_win.h"
+  #include "serialport_win.h"
 #else
-  #include "./poller.h"
+  #include "poller.h"
 #endif
 
 Napi::Value getValueFromObject(Napi::Object options, std::string key) {

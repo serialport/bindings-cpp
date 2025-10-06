@@ -1,4 +1,4 @@
-#include "./darwin_list.h"
+#include "darwin_list.h"
 
 #include <IOKit/IOKitLib.h>
 #include <IOKit/IOCFPlugIn.h>
@@ -10,6 +10,7 @@
 #include <IOKit/serial/ioss.h>
 #endif
 
+#include <cstdio>
 #include <string>
 #include <list>
 

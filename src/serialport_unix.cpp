@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <termios.h>
+#include <cstdio>
 
 #ifdef __APPLE__
 #include <AvailabilityMacros.h>

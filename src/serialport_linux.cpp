@@ -1,5 +1,6 @@
 #if defined(__linux__)
 
+#include "serialport_linux.h"
 #include <sys/ioctl.h>
 #include <asm/ioctls.h>
 #include <asm/termbits.h>

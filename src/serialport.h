@@ -57,7 +57,7 @@ SerialPortStopBits ToStopBitEnum(double stopBits);
 SerialPortRtsMode ToRtsModeEnum(const Napi::String& str);
 
 struct OpenBaton : public Napi::AsyncWorker {
-  OpenBaton(Napi::Function& callback) : Napi::AsyncWorker(callback, "node-serialport:OpenBaton"),
+  OpenBaton(const Napi::Function& callback) : Napi::AsyncWorker(callback, "node-serialport:OpenBaton"),
   errorString(), path() {}
   char errorString[ERROR_STRING_SIZE];
   char path[1024];
@@ -106,7 +106,7 @@ struct ConnectionOptionsBaton : ConnectionOptions , Napi::AsyncWorker {
 };
 
 struct SetBaton : public Napi::AsyncWorker {
-  SetBaton(Napi::Function& callback) : Napi::AsyncWorker(callback, "node-serialport:SetBaton"),
+  SetBaton(const Napi::Function& callback) : Napi::AsyncWorker(callback, "node-serialport:SetBaton"),
   errorString() {}
   int fd = 0;
   int result = 0;
@@ -128,7 +128,7 @@ struct SetBaton : public Napi::AsyncWorker {
 };
 
 struct GetBaton : public Napi::AsyncWorker {
-  GetBaton(Napi::Function& callback) : Napi::AsyncWorker(callback, "node-serialport:GetBaton"),
+  GetBaton(const Napi::Function& callback) : Napi::AsyncWorker(callback, "node-serialport:GetBaton"),
   errorString() {}
   int fd = 0;
   char errorString[ERROR_STRING_SIZE];
@@ -152,7 +152,7 @@ struct GetBaton : public Napi::AsyncWorker {
 };
 
 struct GetBaudRateBaton : public Napi::AsyncWorker {
-  GetBaudRateBaton(Napi::Function& callback) : Napi::AsyncWorker(callback, "node-serialport:GetBaudRateBaton"),
+  GetBaudRateBaton(const Napi::Function& callback) : Napi::AsyncWorker(callback, "node-serialport:GetBaudRateBaton"),
   errorString() {}
   int fd = 0;
   char errorString[ERROR_STRING_SIZE];
@@ -170,7 +170,7 @@ struct GetBaudRateBaton : public Napi::AsyncWorker {
 };
 
 struct VoidBaton : public Napi::AsyncWorker {
-  VoidBaton(Napi::Function& callback, const char *resource_name) : Napi::AsyncWorker(callback, resource_name),
+  VoidBaton(const Napi::Function& callback, const char *resource_name) : Napi::AsyncWorker(callback, resource_name),
   errorString() {}
   int fd = 0;
   char errorString[ERROR_STRING_SIZE];

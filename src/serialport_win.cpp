@@ -1,5 +1,5 @@
-#include "./serialport.h"
-#include "./serialport_win.h"
+#include "serialport.h"
+#include "serialport_win.h"
 #include <napi.h>
 #include <uv.h>
 #include <list>
@@ -11,6 +11,7 @@
 #include <devpkey.h>
 #include <devguid.h>
 #include <wchar.h>
+#include <string>
 #pragma comment(lib, "setupapi.lib")
 
 #define ARRAY_SIZE(arr)     (sizeof(arr)/sizeof(arr[0]))
