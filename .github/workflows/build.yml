@@ -89,7 +89,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           architecture: ${{ matrix.node }}
@@ -114,7 +114,7 @@ jobs:
           pattern: build-artifacts-*
           merge-multiple: true
           path: prebuilds
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
       - run: npm ci
