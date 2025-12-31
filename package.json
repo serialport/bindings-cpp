@@ -41,7 +41,7 @@
     "esbuild-register": "3.6.0",
     "eslint": "8.57.1",
     "mocha": "11.7.5",
-    "node-abi": "3.71.0",
+    "node-abi": "4.24.0",
     "node-gyp": "11.0.0",
     "nyc": "17.1.0",
     "prebuildify": "6.0.1",
