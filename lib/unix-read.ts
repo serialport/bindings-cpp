@@ -37,35 +37,39 @@ export const unixRead = async ({
     throw new BindingsError('Port is not open', { canceled: true })
   }
 
-  try {
-    const { bytesRead } = await fsReadAsync(binding.fd, buffer, offset, length, null)
-    if (bytesRead === 0) {
-      return unixRead({ binding, buffer, offset, length, fsReadAsync })
-    }
-    logger('Finished read', bytesRead, 'bytes')
-    return { bytesRead, buffer }
-  } catch (err) {
-    logger('read error', err)
-    if (err.code === 'EAGAIN' || err.code === 'EWOULDBLOCK' || err.code === 'EINTR') {
-      if (!binding.isOpen) {
-        throw new BindingsError('Port is not open', { canceled: true })
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    try {
+      const {bytesRead} = await fsReadAsync(binding.fd, buffer, offset, length, null)
+      if (bytesRead === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 10))
+        continue
       }
-      logger('waiting for readable because of code:', err.code)
-      await readable(binding)
-      return unixRead({ binding, buffer, offset, length, fsReadAsync })
+      logger('Finished read', bytesRead, 'bytes')
+      return {bytesRead, buffer}
+    } catch (err) {
+      logger('read error', err)
+      if (err.code === 'EAGAIN' || err.code === 'EWOULDBLOCK' || err.code === 'EINTR') {
+        if (!binding.isOpen) {
+          throw new BindingsError('Port is not open', {canceled: true})
+        }
+        logger('waiting for readable because of code:', err.code)
+        await readable(binding)
+        continue
+      }
+
+      const disconnectError =
+        err.code === 'EBADF' || // Bad file number means we got closed
+        err.code === 'ENXIO' || // No such device or address probably usb disconnect
+        err.code === 'UNKNOWN' ||
+        err.errno === -1 // generic error
+
+      if (disconnectError) {
+        err.disconnect = true
+        logger('disconnecting', err)
+      }
+
+      throw err
     }
-
-    const disconnectError =
-      err.code === 'EBADF' || // Bad file number means we got closed
-      err.code === 'ENXIO' || // No such device or address probably usb disconnect
-      err.code === 'UNKNOWN' ||
-      err.errno === -1 // generic error
-
-    if (disconnectError) {
-      err.disconnect = true
-      logger('disconnecting', err)
-    }
-
-    throw err
   }
 }
