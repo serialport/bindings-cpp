@@ -32,6 +32,17 @@ double getDoubleFromObject(Napi::Object options, std::string key) {
   return getValueFromObject(options, key).ToNumber().DoubleValue();
 }
 
+bool hasKeyWithDefinedValue(Napi::Object options, std::string key) {
+  if ((options).Has(key)) {
+    Napi::Value val = getValueFromObject(options, key);
+    if (val.IsUndefined() || val.IsNull()) {
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
 Napi::Value Open(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
   // path
@@ -184,11 +195,26 @@ Napi::Value Set(const Napi::CallbackInfo& info) {
 
   SetBaton* baton = new SetBaton(callback);
   baton->fd = fd;
-  baton->brk = getBoolFromObject(options, "brk");
-  baton->rts = getBoolFromObject(options, "rts");
-  baton->cts = getBoolFromObject(options, "cts");
-  baton->dtr = getBoolFromObject(options, "dtr");
-  baton->dsr = getBoolFromObject(options, "dsr");
+  if (hasKeyWithDefinedValue(options, "brk")) {
+    baton->brkToSet = true;
+    baton->brk = getBoolFromObject(options, "brk");
+  }
+  if (hasKeyWithDefinedValue(options, "rts")) {
+    baton->rtsToSet = true;
+    baton->rts = getBoolFromObject(options, "rts");
+  }
+  if (hasKeyWithDefinedValue(options, "cts")) {
+    baton->ctsToSet = true;
+    baton->cts = getBoolFromObject(options, "cts");
+  }
+  if (hasKeyWithDefinedValue(options, "dtr")) {
+    baton->dtrToSet = true;
+    baton->dtr = getBoolFromObject(options, "dtr");
+  }
+  if (hasKeyWithDefinedValue(options, "dsr")) {
+    baton->rtsToSet = true;
+    baton->dsr = getBoolFromObject(options, "dsr");
+  }
   baton->lowLatency = getBoolFromObject(options, "lowLatency");
 
   baton->Queue();

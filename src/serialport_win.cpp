@@ -247,22 +247,32 @@ void ConnectionOptionsBaton::Execute() {
 }
 
 void SetBaton::Execute() {
-  if (rts) {
-    EscapeCommFunction(int2handle(fd), SETRTS);
-  } else {
-    EscapeCommFunction(int2handle(fd), CLRRTS);
+  if (rtsToSet) {
+    if (rts) {
+      EscapeCommFunction(int2handle(fd), SETRTS);
+    } else {
+      EscapeCommFunction(int2handle(fd), CLRRTS);
+    }
   }
 
-  if (dtr) {
-    EscapeCommFunction(int2handle(fd), SETDTR);
-  } else {
-    EscapeCommFunction(int2handle(fd), CLRDTR);
+  if (dtrToSet) {
+    if (dtr) {
+      EscapeCommFunction(int2handle(fd), SETDTR);
+    } else {
+      EscapeCommFunction(int2handle(fd), CLRDTR);
+    }
   }
 
-  if (brk) {
-    EscapeCommFunction(int2handle(fd), SETBREAK);
-  } else {
-    EscapeCommFunction(int2handle(fd), CLRBREAK);
+  if (brkToSet) {
+    if (brk) {
+      EscapeCommFunction(int2handle(fd), SETBREAK);
+    } else {
+      EscapeCommFunction(int2handle(fd), CLRBREAK);
+    }
+  }
+
+  if (!ctsToSet && !dsrToSet) {
+    return;
   }
 
   DWORD bits = 0;
