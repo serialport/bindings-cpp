@@ -396,7 +396,7 @@ void SetBaton::Execute() {
     result = ioctl(fd, TIOCCBRK, NULL);
   }
 
-  if (-1 == result) {
+  if (-1 == result && errno != EOPNOTSUPP) {
     snprintf(errorString, sizeof(errorString), "Error: %s, cannot set", strerror(errno));
     this->SetError(errorString);
     return;
