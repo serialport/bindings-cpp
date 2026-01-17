@@ -162,6 +162,7 @@ static stDeviceListItem* GetSerialDevices() {
         memset(serialDevice->vendorId, 0, sizeof(serialDevice->vendorId));
         memset(serialDevice->productId, 0, sizeof(serialDevice->productId));
         serialDevice->manufacturer[0] = '\0';
+        serialDevice->product[0] = '\0';
         serialDevice->serialNumber[0] = '\0';
         deviceListItem->next = NULL;
         deviceListItem->length = &length;
@@ -203,6 +204,28 @@ static stDeviceListItem* GetSerialDevices() {
             }
 
             CFRelease(manufacturerAsCFString);
+          }
+
+          CFStringRef productAsCFString = (CFStringRef) IORegistryEntryCreateCFProperty(device,
+                      CFSTR(kUSBProductString),
+                      kCFAllocatorDefault,
+                      0);
+
+          if (productAsCFString) {
+            Boolean result;
+            char    product[MAXPATHLEN];
+
+            // Convert from a CFString to a C (NUL-terminated)
+            result = CFStringGetCString(productAsCFString,
+                          product,
+                          sizeof(product),
+                          kCFStringEncodingUTF8);
+
+            if (result) {
+              snprintf(serialDevice->product, sizeof(serialDevice->product), "%s", product);
+            }
+
+            CFRelease(productAsCFString);
           }
 
           CFStringRef serialNumberAsCFString = (CFStringRef) IORegistryEntrySearchCFProperty(device,
@@ -299,6 +322,9 @@ void ListBaton::Execute() {
       }
       if (*device.manufacturer) {
         resultItem->manufacturer = device.manufacturer;
+      }
+      if (*device.product) {
+        resultItem->product = device.product;
       }
       if (*device.serialNumber) {
         resultItem->serialNumber = device.serialNumber;
