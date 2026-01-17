@@ -19,10 +19,6 @@ export interface LinuxOpenOptions extends OpenOptions {
   // * @param {Boolean} [options.lowLatency=false] flag for lowLatency mode on Linux
 }
 
-export interface LinuxPortStatus extends PortStatus {
-  lowLatency: boolean
-}
-
 export interface LinuxSetOptions extends SetOptions {
   /** Low latency mode */
   lowLatency?: boolean
@@ -172,7 +168,7 @@ export class LinuxPortBinding implements BindingPortInterface {
     await asyncUpdate(this.fd, options)
   }
 
-  async set(options: LinuxSetOptions): Promise<void> {
+  async set(options: SetOptions): Promise<void> {
     if (!options || typeof options !== 'object' || Array.isArray(options)) {
 
       throw new TypeError('"options" is not an object')
@@ -184,7 +180,7 @@ export class LinuxPortBinding implements BindingPortInterface {
     await asyncSet(this.fd, options)
   }
 
-  async get(): Promise<LinuxPortStatus> {
+  async get(): Promise<PortStatus> {
     debug('get')
     if (!this.isOpen) {
       throw new Error('Port is not open')
