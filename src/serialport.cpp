@@ -132,6 +132,11 @@ Napi::Value Close(const Napi::CallbackInfo& info) {
   CloseBaton* baton = new CloseBaton(callback);
   baton->fd = info[0].ToNumber().Int64Value();;
 
+#ifndef WIN32
+  // Mark as closing before queueing worker so in-flight drain workers can exit.
+  markClosingFd(baton->fd);
+#endif
+
   baton->Queue();
   return env.Undefined();
 }

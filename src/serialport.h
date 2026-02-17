@@ -199,4 +199,9 @@ struct FlushBaton : VoidBaton {
 
 int setup(int fd, OpenBaton *data);
 int setBaudRate(ConnectionOptions *data);
+
+#ifndef WIN32
+void markClosingFd(int fd);
+void unmarkClosingFd(int fd);
+#endif
 #endif  // PACKAGES_SERIALPORT_SRC_SERIALPORT_H_

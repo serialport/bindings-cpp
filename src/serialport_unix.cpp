@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <termios.h>
+#include <mutex>
+#include <unordered_set>
 
 #ifdef __APPLE__
 #include <AvailabilityMacros.h>
@@ -29,6 +31,24 @@
 #endif
 
 int ToStopBitsConstant(SerialPortStopBits stopBits);
+static const int DRAIN_POLL_INTERVAL_MS = 10;
+static std::mutex gClosingFdsMutex;
+static std::unordered_set<int> gClosingFds;
+
+void markClosingFd(int fd) {
+  std::lock_guard<std::mutex> lock(gClosingFdsMutex);
+  gClosingFds.insert(fd);
+}
+
+void unmarkClosingFd(int fd) {
+  std::lock_guard<std::mutex> lock(gClosingFdsMutex);
+  gClosingFds.erase(fd);
+}
+
+bool isClosingFd(int fd) {
+  std::lock_guard<std::mutex> lock(gClosingFdsMutex);
+  return gClosingFds.find(fd) != gClosingFds.end();
+}
 
 int ToBaudConstant(int baudRate) {
   switch (baudRate) {
@@ -359,6 +379,8 @@ int setBaudRate(ConnectionOptions *data) {
 }
 
 void CloseBaton::Execute() {
+  markClosingFd(fd);
+
   // Avoid blocking close() on tty drivers that wait for pending TX.
   int flags = fcntl(fd, F_GETFL);
   if (flags != -1) {
@@ -370,6 +392,7 @@ void CloseBaton::Execute() {
     snprintf(errorString, sizeof(errorString), "Error: %s, unable to close fd %d", strerror(errno), fd);
     this->SetError(errorString);
   }
+  unmarkClosingFd(fd);
 }
 
 void SetBaton::Execute() {
@@ -479,7 +502,31 @@ void FlushBaton::Execute() {
 }
 
 void DrainBaton::Execute() {
+#if defined(__linux__) && defined(TIOCOUTQ)
+  while (true) {
+    if (isClosingFd(fd)) {
+      snprintf(errorString, sizeof(errorString), "Error: drain canceled by close");
+      this->SetError(errorString);
+      return;
+    }
 
+    int pendingBytes = 0;
+    if (-1 == ioctl(fd, TIOCOUTQ, &pendingBytes)) {
+      if (errno == ENOTTY || errno == EINVAL) {
+        break;
+      }
+      snprintf(errorString, sizeof(errorString), "Error: %s, cannot drain", strerror(errno));
+      this->SetError(errorString);
+      return;
+    }
+    if (pendingBytes <= 0) {
+      return;
+    }
+    usleep(DRAIN_POLL_INTERVAL_MS * 1000);
+  }
+#endif
+  // TODO: On Unix platforms without TIOCOUTQ, drain still falls back to tcdrain().
+  // Add a cancellable drain strategy for those targets.
   if (-1 == tcdrain(fd)) {
     snprintf(errorString, sizeof(errorString), "Error: %s, cannot drain", strerror(errno));
     this->SetError(errorString);
