@@ -359,6 +359,12 @@ int setBaudRate(ConnectionOptions *data) {
 }
 
 void CloseBaton::Execute() {
+  // Avoid blocking close() on tty drivers that wait for pending TX.
+  int flags = fcntl(fd, F_GETFL);
+  if (flags != -1) {
+    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+  }
+  tcflush(fd, TCOFLUSH);
 
   if (-1 == close(fd)) {
     snprintf(errorString, sizeof(errorString), "Error: %s, unable to close fd %d", strerror(errno), fd);
