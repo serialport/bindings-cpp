@@ -79,6 +79,30 @@ int ToDataBitsConstant(int dataBits) {
   return -1;
 }
 
+bool isUnsupportedModemSetErrno(int code) {
+  if (code == ENOTTY || code == EINVAL) {
+    return true;
+  }
+#ifdef EOPNOTSUPP
+  if (code == EOPNOTSUPP) {
+    return true;
+  }
+#endif
+#ifdef ENOSYS
+  if (code == ENOSYS) {
+    return true;
+  }
+#endif
+  return false;
+}
+
+int applyModemBit(int fd, int mask, bool enabled) {
+  if (enabled) {
+    return ioctl(fd, TIOCMBIS, &mask);
+  }
+  return ioctl(fd, TIOCMBIC, &mask);
+}
+
 void OpenBaton::Execute() {
 
   int flags = (O_RDWR | O_NOCTTY | O_NONBLOCK | O_CLOEXEC | O_SYNC);
@@ -392,20 +416,40 @@ void SetBaton::Execute() {
   int result = 0;
   if (brk) {
     result = ioctl(fd, TIOCSBRK, NULL);
+    if (-1 == result) {
+      snprintf(errorString, sizeof(errorString), "Error: %s, cannot set", strerror(errno));
+      this->SetError(errorString);
+      return;
+    }
   } else {
     result = ioctl(fd, TIOCCBRK, NULL);
-  }
-
-  if (-1 == result) {
-    snprintf(errorString, sizeof(errorString), "Error: %s, cannot set", strerror(errno));
-    this->SetError(errorString);
-    return;
+    if (-1 == result && !isUnsupportedModemSetErrno(errno)) {
+      snprintf(errorString, sizeof(errorString), "Error: %s, cannot set", strerror(errno));
+      this->SetError(errorString);
+      return;
+    }
   }
 
   if (-1 == ioctl(fd, TIOCMSET, &bits)) {
-    snprintf(errorString, sizeof(errorString), "Error: %s, cannot set", strerror(errno));
+    int setErr = errno;
+#if defined(__linux__) && defined(TIOCMBIS) && defined(TIOCMBIC)
+    if (isUnsupportedModemSetErrno(setErr)) {
+      if (-1 == applyModemBit(fd, TIOCM_RTS, rts) ||
+          -1 == applyModemBit(fd, TIOCM_DTR, dtr)) {
+        snprintf(errorString, sizeof(errorString), "Error: %s, cannot set", strerror(errno));
+        this->SetError(errorString);
+        return;
+      }
+    } else {
+      snprintf(errorString, sizeof(errorString), "Error: %s, cannot set", strerror(setErr));
+      this->SetError(errorString);
+      return;
+    }
+#else
+    snprintf(errorString, sizeof(errorString), "Error: %s, cannot set", strerror(setErr));
     this->SetError(errorString);
     return;
+#endif
   }
 
   #if defined(__linux__)
