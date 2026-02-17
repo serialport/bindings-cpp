@@ -56,6 +56,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig-build.json",
+    "prepare": "npm run build",
     "install": "node-gyp-build",
     "prebuildify": "prebuildify --napi --target 20.0.0 --force --strip --verbose",
     "prebuildify-cross": "prebuildify-cross --napi --target 20.0.0 --force --strip --verbose",
