@@ -442,12 +442,6 @@ void __stdcall ReadIOCompletion(DWORD errorCode, DWORD bytesTransferred, OVERLAP
   }
 
   DWORD lastError;
-  if (!GetOverlappedResult(int2handle(baton->fd), ov, &bytesTransferred, TRUE)) {
-    lastError = GetLastError();
-    ErrorCodeToString("Reading from COM port (GetOverlappedResult)", lastError, baton->errorString);
-    baton->complete = true;
-    return;
-  }
   if (bytesTransferred) {
     baton->bytesToRead -= bytesTransferred;
     baton->bytesRead += bytesTransferred;
@@ -455,7 +449,7 @@ void __stdcall ReadIOCompletion(DWORD errorCode, DWORD bytesTransferred, OVERLAP
   }
   if (!baton->bytesToRead) {
     baton->complete = true;
-    CloseHandle(ov->hEvent);
+    // Note: ov->hEvent is a baton pointer, not a Windows handle — do not CloseHandle
     return;
   }
 
