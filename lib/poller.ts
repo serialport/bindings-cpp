@@ -60,6 +60,7 @@ export class Poller extends EventEmitter {
    * @returns {Poller} returns itself
    */
   once(event: 'readable' | 'writable' | 'disconnect', callback: (err: null | Error) => void): this {
+    super.once(event, callback)
     switch (event) {
     case 'readable':
       this.poll(EVENTS.UV_READABLE)
@@ -71,7 +72,7 @@ export class Poller extends EventEmitter {
       this.poll(EVENTS.UV_DISCONNECT)
       break
     }
-    return super.once(event, callback)
+    return this
   }
 
   /**
