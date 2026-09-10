@@ -380,9 +380,9 @@ void EIO_AfterWrite(uv_async_t* req) {
 
   v8::Local<v8::Value> argv[1];
   if (baton->errorString[0]) {
-    baton->callback.Call({Napi::Error::New(env, baton->errorString).Value()});
+    baton->callback.MakeCallback(env.Global(), {Napi::Error::New(env, baton->errorString).Value()}, baton->async_context);
   } else {
-    baton->callback.Call({env.Null()});
+    baton->callback.MakeCallback(env.Global(), {env.Null()}, baton->async_context);
   }
   baton->buffer.Reset();
   delete baton;
@@ -414,7 +414,7 @@ Napi::Value Write(const Napi::CallbackInfo& info) {
     return env.Null();
   }
 
-  WriteBaton* baton = new WriteBaton();
+  WriteBaton* baton = new WriteBaton(env);
   baton->callback = Napi::Persistent(info[2].As<Napi::Function>());
   baton->fd = fd;
   baton->buffer.Reset(buffer);
@@ -552,9 +552,11 @@ void EIO_AfterRead(uv_async_t* req) {
   uv_close(reinterpret_cast<uv_handle_t*>(req), AsyncCloseCallback);
 
   if (baton->errorString[0]) {
-    baton->callback.Call({Napi::Error::New(env, baton->errorString).Value(), env.Undefined()});
+    baton->callback.MakeCallback(env.Global(),
+      {Napi::Error::New(env, baton->errorString).Value(), env.Undefined()}, baton->async_context);
   } else {
-    baton->callback.Call({env.Null(), Napi::Number::New(env, static_cast<int>(baton->bytesRead))});
+    baton->callback.MakeCallback(env.Global(),
+      {env.Null(), Napi::Number::New(env, static_cast<int>(baton->bytesRead))}, baton->async_context);
   }
   delete baton;
 }
@@ -600,7 +602,7 @@ Napi::Value Read(const Napi::CallbackInfo& info) {
     Napi::TypeError::New(env, "Fifth argument must be a function").ThrowAsJavaScriptException();
     return env.Null();
   }
-  ReadBaton* baton = new ReadBaton();
+  ReadBaton* baton = new ReadBaton(env);
   baton->callback = Napi::Persistent(info[4].As<Napi::Function>());
   baton->fd = fd;
   baton->offset = offset;

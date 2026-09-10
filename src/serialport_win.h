@@ -13,7 +13,7 @@ static inline HANDLE int2handle(int ptr) {
 }
 
 struct WriteBaton {
-   WriteBaton() :  bufferData(), errorString() {}
+  explicit WriteBaton(Napi::Env env) : bufferData(), async_context(env, "serialport:Write"), errorString() {}
   int fd = 0;
   char* bufferData = nullptr;
   size_t bufferLength = 0;
@@ -23,6 +23,7 @@ struct WriteBaton {
   bool complete = false;
   Napi::ObjectReference buffer;
 	Napi::FunctionReference callback;
+  Napi::AsyncContext async_context;
   int result = 0;
   char errorString[ERROR_STRING_SIZE];
 };
@@ -30,7 +31,7 @@ struct WriteBaton {
 Napi::Value Write(const Napi::CallbackInfo& info);
 
 struct ReadBaton {
-  ReadBaton() :  errorString() {}
+  explicit ReadBaton(Napi::Env env) : async_context(env, "serialport:Read"), errorString() {}
   int fd = 0;
   char* bufferData = nullptr;
   size_t bufferLength = 0;
@@ -39,6 +40,7 @@ struct ReadBaton {
   size_t offset = 0;
   void* hThread = nullptr;
 	Napi::FunctionReference callback;
+  Napi::AsyncContext async_context;
   bool complete = false;
   char errorString[ERROR_STRING_SIZE];
 };

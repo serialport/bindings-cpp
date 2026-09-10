@@ -2,7 +2,8 @@
 #include <uv.h>
 #include "./poller.h"
 
-Poller::Poller (const Napi::CallbackInfo &info) : Napi::ObjectWrap<Poller>(info)
+Poller::Poller (const Napi::CallbackInfo &info) : Napi::ObjectWrap<Poller>(info),
+  async_context(info.Env(), "serialport:Poller")
   {
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
@@ -81,13 +82,16 @@ void Poller::onData(uv_poll_t* handle, int status, int events) {
   if (0 != status) {
     // fprintf(stdout, "OnData Error status=%s events=%d\n", uv_strerror(status), events);
     obj->_stop(); // doesn't matter if this errors
-    obj->callback.Call({Napi::Error::New(env, uv_strerror(status)).Value(), env.Undefined()});
+    obj->callback.MakeCallback(env.Global(),
+      {Napi::Error::New(env, uv_strerror(status)).Value(), env.Undefined()}, obj->async_context);
   } else {
     // fprintf(stdout, "OnData status=%d events=%d subscribed=%d\n", status, events, obj->events);
     // remove triggered events from the poll
     int newEvents = obj->events & ~events;
     obj->poll(env, newEvents);
-    obj->callback.Call({env.Null(), Napi::Number::New(env, events)});
+    // uv_poll invokes us outside Node's callback scopes. MakeCallback drains
+    // nextTick and Promise continuations before the event loop waits again.
+    obj->callback.MakeCallback(env.Global(), {env.Null(), Napi::Number::New(env, events)}, obj->async_context);
   }
 
 }

@@ -17,6 +17,7 @@ class Poller : public Napi::ObjectWrap<Poller> {
   int fd;
   uv_poll_t* poll_handle = nullptr;
 	Napi::FunctionReference callback;
+  Napi::AsyncContext async_context;
   bool uv_poll_init_success = false;
 
   // can this be read off of poll_handle?
