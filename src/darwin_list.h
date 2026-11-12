@@ -22,8 +22,13 @@ struct ListResultItem {
 };
 
 struct ListBaton : public Napi::AsyncWorker {
-  ListBaton(Napi::Function& callback) : Napi::AsyncWorker(callback, "node-serialport:ListBaton"), 
+  ListBaton(Napi::Function& callback) : Napi::AsyncWorker(callback, "node-serialport:ListBaton"),
   errorString() {}
+  ~ListBaton() {
+    for (std::list<ListResultItem*>::iterator it = results.begin(); it != results.end(); ++it) {
+      delete *it;
+    }
+  }
   std::list<ListResultItem*> results;
   char errorString[ERROR_STRING_SIZE];
   void Execute() override;
