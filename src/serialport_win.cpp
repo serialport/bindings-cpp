@@ -915,6 +915,7 @@ void ListBaton::Execute() {
     free(vendorId);
     free(productId);
     free(locationId);
+    free(friendlyName);
     free(manufacturer);
     free(name);
 
